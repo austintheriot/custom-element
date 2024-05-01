@@ -1,6 +1,7 @@
 use custom_element::{
-    create_custom_element, create_custom_element_with_config, CustomElemenConfiguration,
-    CustomElement, GeneratedConstructor, HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
+    constructors::HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR, create_custom_element,
+    create_custom_element_with_config, CustomElementConfiguration, CustomElement,
+    GeneratedConstructor,
 };
 use js_sys::{Array, Object, Reflect};
 use rand::{distributions::Alphanumeric, Rng};
@@ -63,7 +64,7 @@ pub fn create_customized_built_in_element_constructor() -> GeneratedConstructor 
     let (closure, constructor) = create_custom_element_with_config(
         |element_instance, _args| MockCustomElement::new(element_instance),
         vec![String::from("count")],
-        CustomElemenConfiguration {
+        CustomElementConfiguration {
             element_constructor: &HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
         },
     );

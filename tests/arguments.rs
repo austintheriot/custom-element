@@ -63,8 +63,8 @@ pub mod customized_built_in_components {
     use std::{cell::RefCell, rc::Rc};
 
     use custom_element::{
-        create_custom_element_with_config, CustomElemenConfiguration,
-        HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
+        constructors::HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR, create_custom_element_with_config,
+        CustomElementConfiguration,
     };
 
     use wasm_bindgen::JsValue;
@@ -92,7 +92,7 @@ pub mod customized_built_in_components {
                     MockCustomElement::new_with_args(element, args)
                 },
                 vec![String::from("count")],
-                CustomElemenConfiguration {
+                CustomElementConfiguration {
                     element_constructor: &HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
                 },
             );

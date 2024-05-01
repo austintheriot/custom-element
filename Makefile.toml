@@ -14,3 +14,8 @@ args = [
 	"target.wasm32-unknown-unknown.runner = 'wasm-bindgen-test-runner'",
 	"--target=wasm32-unknown-unknown",
 ]
+
+
+[tasks.doc]
+command = "cargo"
+args = ["doc", "--open", "--target=wasm32-unknown-unknown"]
