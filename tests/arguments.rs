@@ -10,7 +10,7 @@ pub mod autonomous_custom_elements {
     use std::{cell::RefCell, rc::Rc};
 
     use custom_element::create_custom_element;
-    use js_sys::Array;
+
     use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
     use web_sys::window;
@@ -48,9 +48,7 @@ pub mod autonomous_custom_elements {
 
             // instantiate custom element
             constructor
-                .construct_with_arguments(&Array::from_iter(
-                    vec![arg_passed_to_constructor.clone()],
-                ))
+                .construct_with_arguments(vec![arg_passed_to_constructor.clone()])
                 .unwrap();
         }
 
@@ -68,7 +66,7 @@ pub mod customized_built_in_components {
         create_custom_element_with_config, CustomElemenConfiguration,
         HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
     };
-    use js_sys::Array;
+
     use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
     use web_sys::{window, ElementDefinitionOptions};
@@ -111,9 +109,7 @@ pub mod customized_built_in_components {
 
             // instantiate custom element
             constructor
-                .construct_with_arguments(&Array::from_iter(
-                    vec![arg_passed_to_constructor.clone()],
-                ))
+                .construct_with_arguments(vec![arg_passed_to_constructor.clone()])
                 .unwrap();
         }
 

@@ -16,7 +16,7 @@ extern "C" {
     ) -> Function;
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct CustomElemenConfiguration<'a> {
     pub element_constructor: &'a Function,
 }
