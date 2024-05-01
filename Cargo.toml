@@ -2,6 +2,10 @@
 name = "custom-element"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+keywords = ["web-components", "custom-elements", "html", "web-assembly"]
+categories = ["web-programming", "wasm", "gui"]
+publish = ["custom-element"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
