@@ -1,6 +1,6 @@
 use std::fmt::format;
 
-use codex_custom_elements::CustomElement;
+use custom_element::CustomElement;
 use js_sys::{Array, Object};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::prelude::wasm_bindgen;

@@ -1,4 +1,4 @@
-custom-elements-rs
+Custom Element
 
 ## Set up
 

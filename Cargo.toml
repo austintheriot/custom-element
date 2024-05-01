@@ -1,5 +1,5 @@
 [package]
-name = "codex-custom-elements"
+name = "custom-element"
 version = "0.1.0"
 edition = "2021"
 
@@ -18,7 +18,7 @@ web-sys = { version = "0.3.68", features = [
 	"ElementDefinitionOptions",
 ] }
 js-sys = "0.3.68"
-wasm-bindgen = { workspace = true }
+wasm-bindgen = "0.2.92"
 
 
 [dev-dependencies]

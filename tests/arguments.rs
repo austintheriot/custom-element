@@ -9,7 +9,7 @@ use common::helpers;
 pub mod autonomous_custom_elements {
     use std::{cell::RefCell, rc::Rc};
 
-    use codex_custom_elements::create_custom_element;
+    use custom_element::create_custom_element;
     use js_sys::Array;
     use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
@@ -64,7 +64,7 @@ pub mod autonomous_custom_elements {
 pub mod customized_built_in_components {
     use std::{cell::RefCell, ops::Deref, rc::Rc};
 
-    use codex_custom_elements::{
+    use custom_element::{
         create_custom_element_with_config, CustomElemenConfiguration,
         HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
     };

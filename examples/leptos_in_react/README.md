@@ -1,4 +1,4 @@
-# Codex
+# Leptos in React
 
 ## Set up
 

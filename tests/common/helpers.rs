@@ -1,4 +1,4 @@
-use codex_custom_elements::{
+use custom_element::{
     create_custom_element, create_custom_element_with_config, CustomElemenConfiguration,
     CustomElement, GeneratedConstructor, HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
 };
