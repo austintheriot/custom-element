@@ -1,0 +1,27 @@
+[package]
+name = "codex-custom-elements"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+leptos = { version = "0.6.10", features = ["csr"] }
+log = "0.4"
+web-sys = { version = "0.3.68", features = [
+	"Storage",
+	"Window",
+	"Document",
+	"HtmlElement",
+	"CustomElementRegistry",
+	"ElementDefinitionOptions",
+] }
+js-sys = "0.3.68"
+wasm-bindgen = { workspace = true }
+
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.42"
+rand = { version = "0.8.5" }
+getrandom = { version = "0.2.14", features = ["js"] }

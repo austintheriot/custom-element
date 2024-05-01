@@ -1,0 +1,24 @@
+[package]
+name = "stateful"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+web-sys = { version = "0.3.68", features = [
+	"Window",
+	"Document",
+	"HtmlElement",
+	"CustomElementRegistry",
+	"ElementDefinitionOptions",
+	"ShadowRoot",
+	"ShadowRootInit",
+] }
+codex-custom-elements = { path = "../../" }
+js-sys = "0.3.68"
+wasm-bindgen = "0.2.92"
+lazy_static = "1.4.0"
+
+# logging
+log = "0.4"
+wasm-logger = "0.2.0"
+console_error_panic_hook = "0.1.5"

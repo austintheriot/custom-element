@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": "v20.8.1"
+  },
+  "scripts": {
+    "dev": "yarn workspace react-app dev",
+    "lint": "yarn workspace react-app lint",
+    "build": "yarn workspace react-app build",
+    "preview": "yarn workspace react-app preview"
+  },
+  "packageManager": "yarn@1.22.21"
+}
