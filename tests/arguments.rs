@@ -33,7 +33,7 @@ pub mod autonomous_custom_elements {
                     arg_peeked_from_constructor
                         .borrow_mut()
                         .replace(args.get(0));
-                    return MockCustomElement::new_with_args(element, args);
+                    MockCustomElement::new_with_args(element, args)
                 },
                 vec![String::from("count")],
             );
@@ -62,14 +62,14 @@ pub mod autonomous_custom_elements {
 }
 
 pub mod customized_built_in_components {
-    use std::{cell::RefCell, ops::Deref, rc::Rc};
+    use std::{cell::RefCell, rc::Rc};
 
     use custom_element::{
         create_custom_element_with_config, CustomElemenConfiguration,
         HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
     };
-    use js_sys::{Array, Function};
-    use wasm_bindgen::{prelude::*, JsValue};
+    use js_sys::Array;
+    use wasm_bindgen::JsValue;
     use wasm_bindgen_test::*;
     use web_sys::{window, ElementDefinitionOptions};
 
@@ -91,7 +91,7 @@ pub mod customized_built_in_components {
                     arg_peeked_from_constructor
                         .borrow_mut()
                         .replace(args.get(0));
-                    return MockCustomElement::new_with_args(element, args);
+                    MockCustomElement::new_with_args(element, args)
                 },
                 vec![String::from("count")],
                 CustomElemenConfiguration {

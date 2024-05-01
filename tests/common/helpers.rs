@@ -2,7 +2,7 @@ use custom_element::{
     create_custom_element, create_custom_element_with_config, CustomElemenConfiguration,
     CustomElement, GeneratedConstructor, HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
 };
-use js_sys::{Array, Function, Object, Reflect};
+use js_sys::{Array, Object, Reflect};
 use rand::{distributions::Alphanumeric, Rng};
 use wasm_bindgen::prelude::*;
 use web_sys::HtmlElement;
@@ -73,7 +73,7 @@ pub fn create_customized_built_in_element_constructor() -> GeneratedConstructor 
 
 pub fn assert_is_autonomous_element_constructor(v: &JsValue) {
     assert!(v.is_function());
-    let prototype = Object::get_prototype_of(&v);
+    let prototype = Object::get_prototype_of(v);
     assert!(prototype.is_function());
     let name = Reflect::get(&prototype, &JsValue::from_str("name")).unwrap();
     assert_eq!(name, "HTMLElement");
@@ -81,7 +81,7 @@ pub fn assert_is_autonomous_element_constructor(v: &JsValue) {
 
 pub fn assert_is_customized_built_in_constructor(v: &JsValue) {
     assert!(v.is_function());
-    let prototype = Object::get_prototype_of(&v);
+    let prototype = Object::get_prototype_of(v);
     assert!(prototype.is_function());
     let name = Reflect::get(&prototype, &JsValue::from_str("name")).unwrap();
     assert_ne!(name, "HTMLElement");

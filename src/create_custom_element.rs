@@ -60,6 +60,6 @@ pub fn create_custom_element_with_config<
         let bridge: Bridge = create_cutom_element(element, args).into();
         bridge.into()
     });
-    let class = _create_custom_element(&closure, attributes, &config.element_constructor);
+    let class = _create_custom_element(&closure, attributes, config.element_constructor);
     (closure, GeneratedConstructor(class))
 }
