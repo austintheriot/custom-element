@@ -28,15 +28,7 @@ Install Firefox's `geckodriver` to your $PATH (for running wasm tests in headles
 
 `geckodriver` must be in your $PATH, so that it can be executed from `cargo make`.
 
-Build binaryen: https://github.com/WebAssembly/binaryen (for optimizing the generated wasm)
-
-After building, install to /usr/local/bin by running the following in the `binaryen` directory
-
-```sh
-make install
-```
-
-Install cargo-make
+Install cargo-make (for running watch/test scripts)
 
 ```sh
 cargo install cargo-make
@@ -48,40 +40,6 @@ Install cargo-watch (for rebuilding on edits to Rust source files)
 cargo install cargo-watch
 ```
 
-Install nvm (for running the codex-web app)
+## Scripts
 
-- Unix: https://github.com/nvm-sh/nvm
-- Windows: https://github.com/coreybutler/nvm-windows
-
-Install the node version listed in the ./package.json file
-
-Install Yarn
-
-```sh
-npm install --global yarn
-```
-
-Install all JS dependencies
-
-```sh
-yarn
-```
-
-## Run
-
-To run the web app, run the following in the root directory
-
-```sh
-# compiles Rust code on file changes (with --profile=dev)
-cargo make watch-dev
-
-# runs Vite development server for web app
-yarn web-dev
-```
-
-## Test
-
-```sh
-# tests codex-custom-elements package tests in a headless browser
-cargo make test-custom-elements
-```
+See available scripts at ./Makefile.toml
