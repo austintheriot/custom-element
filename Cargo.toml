@@ -5,7 +5,6 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["web-components", "custom-elements", "html", "web-assembly"]
 categories = ["web-programming", "wasm", "gui"]
-publish = ["custom-element"]
 description = "A CustomElement trait for implementing custom elements (web components) in Rust"
 repository = "https://github.com/austintheriot/custom-element"
 readme = "README.md"
