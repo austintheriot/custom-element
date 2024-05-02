@@ -8,6 +8,7 @@ use custom_element_app::*;
 use state::*;
 
 pub use custom_element_app::get_app_tag_name;
+pub use state::State;
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -16,7 +17,8 @@ pub fn start() {
 }
 
 #[wasm_bindgen(js_name = initApp)]
-pub fn init_app() {
+pub fn init_app() -> State {
     let state = init_state();
     CustomElementApp::register(state);
+    state
 }

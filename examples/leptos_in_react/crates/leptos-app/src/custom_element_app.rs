@@ -1,6 +1,5 @@
 use custom_element::{CustomElement, GeneratedConstructor};
 
-use leptos::RwSignal;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{HtmlElement, ShadowRootInit, ShadowRootMode};
@@ -22,12 +21,12 @@ pub fn get_app_tag_name() -> String {
 }
 
 impl CustomElementApp {
-    pub(crate) fn register(state: RwSignal<State>) {
+    pub(crate) fn register(state: State) {
         let constructor = CustomElementApp::create_app_element(state);
         CustomElementApp::register_app_element(&constructor);
     }
 
-    fn create_app_element(state: RwSignal<State>) -> GeneratedConstructor {
+    fn create_app_element(state: State) -> GeneratedConstructor {
         let (closure, constructor) = custom_element::create_custom_element(
             move |instance, _args| CustomElementApp::new(instance, state),
             vec![],
@@ -45,7 +44,7 @@ impl CustomElementApp {
     }
 
     // is called every time this component is created fresh
-    fn new(instance: JsValue, state: RwSignal<State>) -> Self {
+    fn new(instance: JsValue, state: State) -> Self {
         let instance: HtmlElement = instance.into();
         let shadow_root_init = ShadowRootInit::new(ShadowRootMode::Open);
         let shadow_root = instance.attach_shadow(&shadow_root_init).unwrap();
