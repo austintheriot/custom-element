@@ -34,7 +34,9 @@ jobs:
           cargo make --version
 
       - name: Build wasm dependencies
-        run: cargo make build-release
+        run: |
+          mkdir packages/react-app/src/compiled
+          cargo make build-release
 
         # JS toolchain and build
       - name: Checkout code
