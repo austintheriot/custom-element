@@ -1,6 +1,6 @@
 # custom-element
 
-[![Tests](https://github.com/austintheriot/custom-element/actions/workflows/tests.yml/badge.svg)](https://github.com/austintheriot/custom-element/actions/workflows/tests.yml)
+[![https://img.shields.io/github/actions/workflow/status/austintheriot/custom-element/tests.yml]][https://github.com/austintheriot/custom-element/actions/workflows/tests.yml]
 [![crates.io](https://img.shields.io/crates/v/custom_element.svg)](https://crates.io/crates/custom_element)
 [![docs.rs](https://docs.rs/custom_element/badge.svg)](https://docs.rs/custom_element)
 
