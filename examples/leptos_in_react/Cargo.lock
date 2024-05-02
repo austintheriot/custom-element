@@ -128,17 +128,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "codex-custom-elements"
-version = "0.1.0"
-dependencies = [
- "js-sys",
- "leptos",
- "log",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
 name = "collection_literals"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -202,6 +191,15 @@ name = "crunchy"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a81dae078cea95a014a339291cec439d2f232ebe854a9d672b796c6afafa9b7"
+
+[[package]]
+name = "custom-element"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+ "web-sys",
+]
 
 [[package]]
 name = "dashmap"
@@ -529,13 +527,12 @@ dependencies = [
 name = "leptos-app"
 version = "0.1.0"
 dependencies = [
- "codex-custom-elements",
  "console_error_panic_hook",
+ "custom-element",
  "js-sys",
  "leptos",
  "log",
  "wasm-bindgen",
- "wasm-bindgen-futures",
  "wasm-logger",
  "web-sys",
 ]

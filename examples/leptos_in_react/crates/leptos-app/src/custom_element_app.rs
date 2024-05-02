@@ -1,11 +1,6 @@
-use std::time::Duration;
-
 use custom_element::{CustomElement, GeneratedConstructor};
 
-use leptos::leptos_dom::helpers::IntervalHandle;
-use leptos::{
-    create_rw_signal, create_slice, set_interval_with_handle, RwSignal, SignalGet, SignalUpdate,
-};
+use leptos::RwSignal;
 use wasm_bindgen::prelude::wasm_bindgen;
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{HtmlElement, ShadowRootInit, ShadowRootMode};
@@ -13,11 +8,9 @@ use web_sys::{HtmlElement, ShadowRootInit, ShadowRootMode};
 use crate::leptos_app::{App, AppProps};
 use crate::State;
 
-pub struct App {
-    state: RwSignal<State>,
-}
+pub struct CustomElementApp;
 
-impl CustomElement for App {
+impl CustomElement for CustomElementApp {
     fn connected_callback(&mut self) {}
 
     fn disconnected_callback(&mut self) {}
@@ -28,15 +21,15 @@ pub fn get_app_tag_name() -> String {
     String::from("my-rust-app")
 }
 
-impl App {
+impl CustomElementApp {
     pub(crate) fn register(state: RwSignal<State>) {
-        let constructor = App::create_app_element(state);
-        App::register_app_element(&constructor);
+        let constructor = CustomElementApp::create_app_element(state);
+        CustomElementApp::register_app_element(&constructor);
     }
 
     fn create_app_element(state: RwSignal<State>) -> GeneratedConstructor {
         let (closure, constructor) = custom_element::create_custom_element(
-            move |instance, _args| App::new(instance, state),
+            move |instance, _args| CustomElementApp::new(instance, state),
             vec![],
         );
         closure.forget();
@@ -60,6 +53,6 @@ impl App {
             App(AppProps { state })
         });
 
-        App { state }
+        CustomElementApp
     }
 }

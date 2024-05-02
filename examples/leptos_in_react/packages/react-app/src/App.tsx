@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import "./App.css";
 import initWasm, { getAppTagName, initApp } from "./compiled/leptos_app";
 
 const wasmIsInit = initWasm();

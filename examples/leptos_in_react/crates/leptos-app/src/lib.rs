@@ -1,13 +1,13 @@
 use wasm_bindgen::prelude::*;
 
-mod app;
+mod custom_element_app;
 mod leptos_app;
 mod state;
 
-use app::*;
+use custom_element_app::*;
 use state::*;
 
-pub use app::get_app_tag_name;
+pub use custom_element_app::get_app_tag_name;
 
 #[wasm_bindgen(start)]
 pub fn start() {
@@ -18,5 +18,5 @@ pub fn start() {
 #[wasm_bindgen(js_name = initApp)]
 pub fn init_app() {
     let state = init_state();
-    App::register(state);
+    CustomElementApp::register(state);
 }

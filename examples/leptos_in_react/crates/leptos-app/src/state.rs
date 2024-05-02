@@ -8,7 +8,6 @@ use leptos::{
 pub(crate) struct State {
     pub count: i32,
     pub interval_handle: Option<IntervalHandle>,
-    pub name: String,
 }
 
 pub(crate) fn init_state() -> RwSignal<State> {

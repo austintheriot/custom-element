@@ -4,27 +4,48 @@ on:
   push:
   pull_request:
 jobs:
-  # build-demo-granular-synthesizer-web:
-  #   runs-on: ubuntu-latest
-  #
-  #   defaults:
-  #     run:
-  #       working-directory: examples/counter
-  #
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #
-  #     - name: Set up Node
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version-file: 'demos/granular_synthesizer_web/.nvmrc'
-  #
-  #     - name: Install dependencies
-  #       run: npm ci
-  #
-  #     - name: Build project
-  #       run: npm run build
+  build-leptos-in-react:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: examples/counter
+
+    steps:
+      - uses: actions/checkout@v2
+
+        # rust toolchain & build
+      - name: Update local toolchain
+        run: |
+          rustup update
+          rustup component add clippy
+          rustup install stable
+          rustup target add wasm32-unknown-unknown
+
+      - name: Toolchain info
+        run: |
+          cargo --version --verbose
+          rustc --version
+          cargo clippy --version
+
+      - name: Build wasm dependencies
+        run: cargo make build-release
+
+        # JS toolchain and build
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node
+        uses: actions/setup-node@v2
+
+      - name: Install yarn
+        run: npm install --global yarn
+
+      - name: Install JS dependencies
+        run: yarn
+
+      - name: Build project
+        run: yarn build
 
   build-counter:
     runs-on: ubuntu-latest
