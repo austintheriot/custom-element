@@ -1,0 +1,46 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test-workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Install geckodriver
+        run: sudo apt-get install -y firefox
+
+      # - name: Install geckodriver
+      #   run: |
+      #     wget https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz
+      #     tar -xvzf geckodriver*
+      #     chmod +x geckodriver
+      #     sudo mv geckodriver /usr/local/bin/
+
+      - name: Update local toolchain
+        run: |
+          rustup update
+          rustup component add clippy
+          rustup install stable
+
+      - name: Update cargo tooling
+        run: |
+          cargo install wasm-bindgen-cli --vers "0.2.92"
+          cargo install cargo-make
+
+      - name: Toolchain info
+        run: |
+          cargo --version --verbose
+          rustc --version
+          cargo clippy --version
+          cargo make --version
+
+      - name: Test
+        run: |
+          cargo make test
