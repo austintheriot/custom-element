@@ -28,6 +28,7 @@ jobs:
           rustup update
           rustup component add clippy
           rustup install stable
+          rustup target add wasm32-unknown-unknown
 
       - name: Update cargo tooling
         run: |
