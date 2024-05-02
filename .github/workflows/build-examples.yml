@@ -22,11 +22,16 @@ jobs:
           rustup install stable
           rustup target add wasm32-unknown-unknown
 
+      - name: Install cargo tooling
+        run: |
+          cargo install cargo-make
+
       - name: Toolchain info
         run: |
           cargo --version --verbose
           rustc --version
           cargo clippy --version
+          cargo make --version
 
       - name: Build wasm dependencies
         run: cargo make build-release
