@@ -25,3 +25,9 @@ This crates provide the JavaScript shim necessary for extending an arbitrary sub
 ### Current Rough Edges
 
 - It's possible to run into the following issue if you are calling your custom element with both `&mut` and `&` pointers: https://github.com/rustwasm/wasm-bindgen/issues/1578. The ways that I know of to get around this issue are by either by scheduling mutable calls to the custom element instance to happen once the current function scope ends or by adding some indirection through `Rc<RefCell<T>>` If you have other ideas of how to reduce this issue, I'd be interested in a message or a PR.
+
+## Other libraries you may be interested in
+
+- [custom-elements](https://github.com/gbj/custom-elements)
+
+- [webcomponents](https://github.com/richardanaya/webcomponent)
