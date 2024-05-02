@@ -12,11 +12,13 @@ This crates provide the JavaScript shim necessary for extending an arbitrary sub
 
 ## Why this crate rather than the other available ones?
 
-- Allows creating autonomous custom elements OR customized built-in elements
+- Allows creating both autonomous custom elements AND customized built-in elements
 
 - Provides all the valid HtmlElement constructors (behind a feature flag) for creating customized built-in elements
 
 - Comes with a comprehensive test suite
+
+- Extensive examples showing how to use this library to wrap Leptos components and call them from JS
 
 - Less opinionated approach to creating custom elements. This library
 
