@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Install geckodriver
+        run: sudo apt-get install -y firefox
+
+      - name: Update Rust toolchain
+        run: |
+          rustup update
+          rustup component add clippy
+          rustup install stable
+          rustup target add wasm32-unknown-unknown
+
+      - name: Install cargo tooling
+        run: |
+          cargo install wasm-bindgen-cli --vers "0.2.92"
+          cargo install cargo-make
+
+      - name: Print versions
+        run: |
+          cargo --version --verbose
+          rustc --version
+          cargo clippy --version
+          cargo make --version
+
+      - name: Test
+        run: |
+          cargo make test

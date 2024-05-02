@@ -1,0 +1,93 @@
+[config]
+skip_core_tasks = true
+
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+# path is relative to the crate itself, not the root directory
+PATH_TO_TARGET_DIR = "../../target/wasm32-unknown-unknown"
+PATH_TO_OUTPUT_DIR = "../../packages/react-app/src/compiled"
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+# COMPILING ##########
+[tasks.compile-leptos-app-release]
+command = "cargo"
+args = [
+	"build",
+	"--package=leptos-app",
+	"--profile=release",
+	"--target=wasm32-unknown-unknown",
+]
+
+[tasks.compile-leptos-app-dev]
+command = "cargo"
+args = [
+	"build",
+	"--package=leptos-app",
+	"--profile=dev",
+	"--target=wasm32-unknown-unknown",
+]
+
+# BUILDING ##########
+[tasks.build-leptos-app-release]
+command = "wasm-bindgen"
+args = [
+	"--out-dir",
+	# put into source tree of the JS web app for normal imports to work
+	"${PATH_TO_OUTPUT_DIR}",
+	"--target",
+	"web",
+	"${PATH_TO_TARGET_DIR}/release/leptos_app.wasm",
+]
+dependencies = ["compile-leptos-app-release"]
+
+[tasks.build-leptos-app-dev]
+command = "wasm-bindgen"
+args = [
+	"--out-dir",
+	# put into source tree of the JS web app for normal imports to work
+	"${PATH_TO_OUTPUT_DIR}",
+	"--target",
+	"web",
+	# enable debug symbols (?)
+	"--debug",
+	"${PATH_TO_TARGET_DIR}/debug/leptos_app.wasm",
+]
+dependencies = ["compile-leptos-app-dev"]
+
+
+# RENAME UNOPTIMIZED WASM ##########
+[tasks.copy-unoptimized-app-wasm]
+command = "mv"
+args = [
+	"${PATH_TO_OUTPUT_DIR}/leptos_app_bg.wasm",
+	"${PATH_TO_OUTPUT_DIR}/leptos_app_unoptimized.wasm",
+]
+
+# OPTIMIZING ##########
+[tasks.opt-leptos-app]
+command = "wasm-opt"
+args = [
+	"${PATH_TO_OUTPUT_DIR}/leptos_app_unoptimized.wasm",
+	"--output",
+	"${PATH_TO_OUTPUT_DIR}/leptos_app_bg.wasm",
+	"-O2",
+]
+dependencies = ["build-leptos-app-release", "copy-unoptimized-app-wasm"]
+
+# supports building multiple libs in parallel
+[tasks.build-dev]
+run_task = { name = ["build-leptos-app-dev"], parallel = true }
+
+[tasks.build-release]
+run_task = { name = ["opt-leptos-app"], parallel = true }
+
+[tasks.watch-dev]
+command = "cargo"
+args = ["watch", "-x", "check", "-s", "cargo make build-dev"]
+
+[tasks.watch-release]
+command = "cargo"
+args = ["watch", "-x", "check", "-s", "cargo make build-release"]
