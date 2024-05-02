@@ -39,13 +39,13 @@ pub struct CustomElementResult {
     /// class for your custom element. This can be constructed directly like so:
     ///
     /// ```rust
-    /// todo!()
+    /// // todo
     /// ```
     ///
     /// Or can be instantiated via plain html:
     ///
     /// ```rust
-    /// todo!()
+    /// // todo
     /// ```
     pub constructor: GeneratedConstructor,
 
