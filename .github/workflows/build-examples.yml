@@ -9,7 +9,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: examples/counter
+        working-directory: examples/leptos_in_react
 
     steps:
       - uses: actions/checkout@v2
