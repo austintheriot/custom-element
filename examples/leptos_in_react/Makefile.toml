@@ -5,13 +5,10 @@ skip_core_tasks = true
 CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
 PATH_TO_TARGET_DIR = "../../target/wasm32-unknown-unknown"
 PATH_TO_OUTPUT_DIR = "../../packages/react-app/src/compiled"
-GECKODRIVER = "geckodriver"
 
 [tasks.clean]
 command = "cargo"
 args = ["clean"]
-
-# CODEX APP ##############################################
 
 # COMPILING ##########
 [tasks.compile-leptos-app-release]
@@ -22,7 +19,6 @@ args = [
 	"--profile=release",
 	"--target=wasm32-unknown-unknown",
 ]
-
 
 [tasks.compile-leptos-app-dev]
 command = "cargo"
@@ -38,7 +34,7 @@ args = [
 command = "wasm-bindgen"
 args = [
 	"--out-dir",
-	# put into source tree of codex-web for web app imports
+	# put into source tree of the JS web app for normal imports to work
 	"${PATH_TO_OUTPUT_DIR}",
 	"--target",
 	"web",
@@ -50,7 +46,7 @@ dependencies = ["compile-leptos-app-release"]
 command = "wasm-bindgen"
 args = [
 	"--out-dir",
-	# put into source tree of codex-web for web app imports
+	# put into source tree of the JS web app for normal imports to work
 	"${PATH_TO_OUTPUT_DIR}",
 	"--target",
 	"web",
@@ -94,15 +90,3 @@ args = ["watch", "-x", "check", "-s", "cargo make build-dev"]
 [tasks.watch-release]
 command = "cargo"
 args = ["watch", "-x", "check", "-s", "cargo make build-release"]
-
-[tasks.test-custom-elements]
-command = "cargo"
-args = [
-	"test",
-	# enables running tests in headless browser via wasm-bindgen-test-runner
-	"--config",
-	"target.wasm32-unknown-unknown.runner = 'wasm-bindgen-test-runner'",
-	# target only the package we care about
-	"--package=leptos-app",
-	"--target=wasm32-unknown-unknown",
-]

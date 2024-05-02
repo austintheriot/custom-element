@@ -48,7 +48,7 @@ Install cargo-watch (for rebuilding on edits to Rust source files)
 cargo install cargo-watch
 ```
 
-Install nvm (for running the codex-web app)
+Install nvm (for running the JS web app)
 
 - Unix: https://github.com/nvm-sh/nvm
 - Windows: https://github.com/coreybutler/nvm-windows
@@ -82,6 +82,6 @@ yarn web-dev
 ## Test
 
 ```sh
-# tests codex-custom-elements package tests in a headless browser
+# tests JS package tests in a headless browser
 cargo make test-custom-elements
 ```

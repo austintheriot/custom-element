@@ -8,9 +8,12 @@ web-sys = { version = "0.3.68", features = [
 	"Window",
 	"Document",
 	"HtmlElement",
+	"HtmlButtonElement",
+	"HtmlParagraphElement",
 	"CustomElementRegistry",
 	"ElementDefinitionOptions",
 	"ShadowRoot",
+	"ShadowRootMode",
 	"ShadowRootInit",
 ] }
 custom-element = { path = "../../" }

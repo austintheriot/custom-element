@@ -230,10 +230,8 @@ fn main() {
     wasm_logger::init(wasm_logger::Config::default());
 
     let component_name = "my-counter";
-    let (closure, constructor) = codex_custom_elements::create_custom_element(
-        Counter::new,
-        Counter::get_observed_attributes(),
-    );
+    let (closure, constructor) =
+        custom_element::create_custom_element(Counter::new, Counter::get_observed_attributes());
     closure.forget();
 
     let window = web_sys::window().unwrap();

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use codex_custom_elements::{CustomElement, GeneratedConstructor};
+use custom_element::{CustomElement, GeneratedConstructor};
 
 use leptos::leptos_dom::helpers::IntervalHandle;
 use leptos::{
@@ -35,7 +35,7 @@ impl App {
     }
 
     fn create_app_element(state: RwSignal<State>) -> GeneratedConstructor {
-        let (closure, constructor) = codex_custom_elements::create_custom_element(
+        let (closure, constructor) = custom_element::create_custom_element(
             move |instance, _args| App::new(instance, state),
             vec![],
         );
