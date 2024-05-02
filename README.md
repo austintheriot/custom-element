@@ -2,15 +2,15 @@
 
 ## Overview
 
-## The Problem
+### The Problem
 
 Extending a JS class from Rust/Wasm is not currently supported by `wasm-bindgen`: https://github.com/rustwasm/wasm-bindgen/issues/210, https://github.com/rustwasm/wasm-bindgen/issues/210. This functionality, however is essential for creating a custom element on the web, since custom elements [must inherit from `HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/Web_Components/Using_custom_elements#implementing_a_custom_element) (or some other valid subclass of HTMLElement).
 
-## The solution
+### The solution
 
 This crates provide the JavaScript shim necessary for extending an arbitrary subclass of `HTMLElement` and forwards all custom element lifecycle method calls to the Rust struct you provide.
 
-## Why this crate rather than the other available ones?
+### Why this crate rather than the other available ones?
 
 - Allows creating both autonomous custom elements AND customized built-in elements
 
@@ -22,14 +22,6 @@ This crates provide the JavaScript shim necessary for extending an arbitrary sub
 
 - Less opinionated approach to creating custom elements. This library
 
-## Rough Edges
+### Current Rough Edges
 
-- It's possible to run into the following issue if you are calling your custom element with both `&mut` and `&` pointers: https://github.com/rustwasm/wasm-bindgen/issues/1578
-
-## Set up
-
-For steps for compiling this repo locally, see [./SETUP.md](./SETUP.md)
-
-## Scripts
-
-See available scripts at [./Makefile.toml](./Makefile.toml)
+- It's possible to run into the following issue if you are calling your custom element with both `&mut` and `&` pointers: https://github.com/rustwasm/wasm-bindgen/issues/1578. The ways that I know of to get around this issue are by either by scheduling mutable calls to the custom element instance to happen once the current function scope ends or by adding some indirection through `Rc<RefCell<T>>` If you have other ideas of how to reduce this issue, I'd be interested in a message or a PR.
