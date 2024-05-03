@@ -36,17 +36,7 @@ impl<'a> Default for CustomElementConfiguration<'a> {
 /// The result of creating a custom element.
 pub struct CustomElementResult {
     /// The [`CustomElementResult`].constructor is the generated
-    /// class for your custom element. This can be constructed directly like so:
-    ///
-    /// ```rust
-    /// // todo
-    /// ```
-    ///
-    /// Or can be instantiated via plain html:
-    ///
-    /// ```rust
-    /// // todo
-    /// ```
+    /// class for your custom element.
     pub constructor: GeneratedConstructor,
 
     /// The returned [`CustomElementResult`].closure contains
