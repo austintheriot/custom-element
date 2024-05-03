@@ -74,14 +74,11 @@ To run the web app, run the following in the root directory
 ```sh
 # compiles Rust code on file changes (with --profile=dev)
 cargo make watch-dev
-
-# runs Vite development server for web app
-yarn web-dev
 ```
 
-## Test
+And in a separate terminal, run
 
 ```sh
-# tests JS package tests in a headless browser
-cargo make test-custom-elements
+# runs Vite development server for web app
+yarn web-dev
 ```
