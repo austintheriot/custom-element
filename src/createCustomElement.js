@@ -19,7 +19,7 @@ export function createCustomElement(
     }
 
     disconnectedCallback() {
-      this.struct.connectedCallback();
+      this.struct.disconnectedCallback();
     }
 
     adoptedCallback() {
