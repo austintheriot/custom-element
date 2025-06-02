@@ -85,3 +85,85 @@ pub mod customized_built_in_custom_elements {
         helpers::assert_is_custom_element_instance(&instance)
     }
 }
+
+pub mod bridge {
+
+    mod call_forwarding_to_struct {
+        use wasm_bindgen_test::wasm_bindgen_test;
+        use web_sys::window;
+
+        use crate::common::helpers;
+
+        #[wasm_bindgen_test]
+        fn should_forward_connected_calls() {
+            let window = window().unwrap();
+            let document = window.document().unwrap();
+            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+
+            assert_eq!(*call_counters.num_calls_connected.borrow(), 0);
+
+            document.body().unwrap().append_child(&instance).unwrap();
+
+            assert_eq!(*call_counters.num_calls_connected.borrow(), 1);
+        }
+
+        #[wasm_bindgen_test]
+        fn should_forward_disconnected_calls() {
+            let window = window().unwrap();
+            let document = window.document().unwrap();
+            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+            document.body().unwrap().append_child(&instance).unwrap();
+
+            assert_eq!(*call_counters.num_calls_disconnected.borrow(), 0);
+
+            document.body().unwrap().remove_child(&instance).unwrap();
+
+            assert_eq!(*call_counters.num_calls_disconnected.borrow(), 1);
+        }
+
+        #[wasm_bindgen_test]
+        fn should_forward_adopted_calls() {
+            let window = window().unwrap();
+            let document = window.document().unwrap();
+            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+            document.body().unwrap().append_child(&instance).unwrap();
+
+            assert_eq!(*call_counters.num_calls_adopted.borrow(), 0);
+
+            let new_document = document
+                .implementation()
+                .unwrap()
+                .create_html_document()
+                .unwrap();
+
+            new_document.adopt_node(&instance).unwrap();
+
+            assert_eq!(*call_counters.num_calls_adopted.borrow(), 1);
+        }
+
+        #[wasm_bindgen_test]
+        fn should_forward_attribute_changed_calls() {
+            let window = window().unwrap();
+            let document = window.document().unwrap();
+            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+
+            // does NOT increment unobserved attributes
+
+            assert_eq!(*call_counters.num_calls_attribute_changed.borrow(), 0);
+
+            instance
+                .set_attribute("unobserved", "Hello, world")
+                .unwrap();
+
+            assert_eq!(*call_counters.num_calls_attribute_changed.borrow(), 0);
+
+            // DOES increment observed attributes
+
+            assert_eq!(*call_counters.num_calls_attribute_changed.borrow(), 0);
+
+            instance.set_attribute("observed", "Hello, world").unwrap();
+
+            assert_eq!(*call_counters.num_calls_attribute_changed.borrow(), 1);
+        }
+    }
+}

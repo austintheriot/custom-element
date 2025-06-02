@@ -21,7 +21,7 @@ Install wasm-bindgen-cli (for generating the JS bindings to use the .wasm files 
 Note: must match version of `wasm-bindgen` installed locally.
 
 ```sh
-cargo install wasm-bindgen-cli --vers "0.2.92"
+cargo install wasm-bindgen-cli --vers "0.2.100"
 ```
 
 Install Firefox's `geckodriver` to your $PATH (for running wasm tests in headless mode): https://github.com/mozilla/geckodriver/releases
@@ -69,7 +69,7 @@ yarn
 
 ## Run
 
-To run the web app, run the following in the root directory
+To run the web app, run the following in the `leptos_in_react` directory
 
 ```sh
 # compiles Rust code on file changes (with --profile=dev)
@@ -80,5 +80,5 @@ And in a separate terminal, run
 
 ```sh
 # runs Vite development server for web app
-yarn web-dev
+yarn dev
 ```

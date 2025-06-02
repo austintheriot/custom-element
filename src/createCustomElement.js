@@ -19,11 +19,15 @@ export function createCustomElement(
     }
 
     disconnectedCallback() {
-      this.struct.connectedCallback();
+      this.struct.disconnectedCallback();
     }
 
     adoptedCallback() {
       this.struct.adoptedCallback();
+    }
+
+    connectedMoveCallback() {
+      this.struct.connectedMoveCallback();
     }
 
     attributeChangedCallback(...args) {

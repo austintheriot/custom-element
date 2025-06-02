@@ -25,7 +25,7 @@ pub struct CustomElementConfiguration<'a> {
     pub element_constructor: &'a Function,
 }
 
-impl<'a> Default for CustomElementConfiguration<'a> {
+impl Default for CustomElementConfiguration<'_> {
     fn default() -> Self {
         Self {
             element_constructor: &HTML_ELEMENT_CONSTRUCTOR,

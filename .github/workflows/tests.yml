@@ -25,7 +25,7 @@ jobs:
 
       - name: Install cargo tooling
         run: |
-          cargo install wasm-bindgen-cli --vers "0.2.92"
+          cargo install wasm-bindgen-cli --vers "0.2.100"
           cargo install cargo-make
 
       - name: Print versions

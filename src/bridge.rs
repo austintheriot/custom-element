@@ -53,6 +53,12 @@ impl Bridge {
     }
 
     #[doc(hidden)]
+    #[wasm_bindgen(js_name = connectedMoveCallback)]
+    pub fn connected_move_callback(&mut self) {
+        self.inner.connected_move_callback()
+    }
+
+    #[doc(hidden)]
     #[wasm_bindgen(js_name = attributeChangedCallback)]
     pub fn attribute_changed_callback(
         &mut self,
