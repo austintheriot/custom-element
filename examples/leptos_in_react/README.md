@@ -69,7 +69,7 @@ yarn
 
 ## Run
 
-To run the web app, run the following in the root directory
+To run the web app, run the following in the `leptos_in_react` directory
 
 ```sh
 # compiles Rust code on file changes (with --profile=dev)
