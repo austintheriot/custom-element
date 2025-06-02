@@ -26,6 +26,10 @@ export function createCustomElement(
       this.struct.adoptedCallback();
     }
 
+    connectedMoveCallback() {
+      this.struct.connectedMoveCallback();
+    }
+
     attributeChangedCallback(...args) {
       this.struct.attributeChangedCallback(...args);
     }

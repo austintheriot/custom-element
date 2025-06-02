@@ -29,6 +29,7 @@ getrandom = { version = "0.2.14", features = ["js"] }
 web-sys = { version = "0.3.68", features = [
 	"CustomElementRegistry",
 	"ElementDefinitionOptions",
+	"DomImplementation",
 ] }
 
 

@@ -1,6 +1,6 @@
 use custom_element::{
     constructors::HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR, create_custom_element,
-    create_custom_element_with_config, CustomElementConfiguration, CustomElement,
+    create_custom_element_with_config, CustomElement, CustomElementConfiguration,
     GeneratedConstructor,
 };
 use js_sys::{Array, Object, Reflect};
