@@ -87,164 +87,83 @@ pub mod customized_built_in_custom_elements {
 }
 
 pub mod bridge {
-    use std::{cell::RefCell, rc::Rc};
 
-    use custom_element::{
-        constructors::HTML_ELEMENT_CONSTRUCTOR, create_custom_element_with_config, CustomElement,
-        CustomElementConfiguration,
-    };
+    mod call_forwarding_to_struct {
+        use wasm_bindgen_test::wasm_bindgen_test;
+        use web_sys::window;
 
-    use wasm_bindgen_test::wasm_bindgen_test;
-    use web_sys::window;
+        use crate::common::helpers;
 
-    use crate::common::helpers;
+        #[wasm_bindgen_test]
+        fn should_forward_connected_calls() {
+            let window = window().unwrap();
+            let document = window.document().unwrap();
+            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
 
-    #[wasm_bindgen_test]
-    fn should_forward_calls_to_the_underlying_struct() {
-        pub struct CustomElementCallCounter {
-            num_calls_connected: Rc<RefCell<u32>>,
-            num_calls_disconnected: Rc<RefCell<u32>>,
-            num_calls_adopted: Rc<RefCell<u32>>,
-            num_calls_attributed_changed: Rc<RefCell<u32>>,
-            num_calls_handle_event: Rc<RefCell<u32>>,
+            assert_eq!(*call_counters.num_calls_connected.borrow(), 0);
+
+            document.body().unwrap().append_child(&instance).unwrap();
+
+            assert_eq!(*call_counters.num_calls_connected.borrow(), 1);
         }
 
-        impl CustomElement for CustomElementCallCounter {
-            fn connected_callback(&mut self) {
-                *self.num_calls_connected.borrow_mut() += 1;
-            }
+        #[wasm_bindgen_test]
+        fn should_forward_disconnected_calls() {
+            let window = window().unwrap();
+            let document = window.document().unwrap();
+            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+            document.body().unwrap().append_child(&instance).unwrap();
 
-            fn disconnected_callback(&mut self) {
-                *self.num_calls_disconnected.borrow_mut() += 1;
-            }
+            assert_eq!(*call_counters.num_calls_disconnected.borrow(), 0);
 
-            fn adopted_callback(&mut self) {
-                *self.num_calls_adopted.borrow_mut() += 1;
-            }
+            document.body().unwrap().remove_child(&instance).unwrap();
 
-            fn attribute_changed_callback(
-                &mut self,
-                _name: &str,
-                _old_value: wasm_bindgen::JsValue,
-                _new_value: wasm_bindgen::JsValue,
-            ) {
-                *self.num_calls_attributed_changed.borrow_mut() += 1;
-            }
-
-            fn handle_event(&mut self, _event: web_sys::Event) {
-                *self.num_calls_handle_event.borrow_mut() += 1;
-            }
+            assert_eq!(*call_counters.num_calls_disconnected.borrow(), 1);
         }
 
-        impl CustomElementCallCounter {
-            // allows to peek at implementation
-            pub fn new(
-                num_calls_connected: Rc<RefCell<u32>>,
-                num_calls_disconnected: Rc<RefCell<u32>>,
-                num_calls_adopted: Rc<RefCell<u32>>,
-                num_calls_attributed_changed: Rc<RefCell<u32>>,
-                num_calls_handle_event: Rc<RefCell<u32>>,
-            ) -> Self {
-                Self {
-                    num_calls_connected,
-                    num_calls_disconnected,
-                    num_calls_adopted,
-                    num_calls_attributed_changed,
-                    num_calls_handle_event,
-                }
-            }
+        #[wasm_bindgen_test]
+        fn should_forward_adopted_calls() {
+            let window = window().unwrap();
+            let document = window.document().unwrap();
+            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+            document.body().unwrap().append_child(&instance).unwrap();
+
+            assert_eq!(*call_counters.num_calls_adopted.borrow(), 0);
+
+            let new_document = document
+                .implementation()
+                .unwrap()
+                .create_html_document()
+                .unwrap();
+
+            new_document.adopt_node(&instance).unwrap();
+
+            assert_eq!(*call_counters.num_calls_adopted.borrow(), 1);
         }
 
-        let window = window().unwrap();
-        let document = window.document().unwrap();
+        #[wasm_bindgen_test]
+        fn should_forward_attribute_changed_calls() {
+            let window = window().unwrap();
+            let document = window.document().unwrap();
+            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
 
-        let num_calls_connected = Rc::new(RefCell::new(0u32));
-        let num_calls_disconnected = Rc::new(RefCell::new(0u32));
-        let num_calls_adopted = Rc::new(RefCell::new(0u32));
-        let num_calls_attributed_changed = Rc::new(RefCell::new(0u32));
-        let num_calls_handle_event = Rc::new(RefCell::new(0u32));
+            // does NOT increment unobserved attributes
 
-        // create constructor
-        let (closure, constructor) = {
-            let num_calls_connected = Rc::clone(&num_calls_connected);
-            let num_calls_disconnected = Rc::clone(&num_calls_disconnected);
-            let num_calls_adopted = Rc::clone(&num_calls_adopted);
-            let num_calls_attribute_changed = Rc::clone(&num_calls_attributed_changed);
-            let num_calls_handle_event = Rc::clone(&num_calls_handle_event);
+            assert_eq!(*call_counters.num_calls_attribute_changed.borrow(), 0);
 
-            create_custom_element_with_config(
-                move |_element_instance, _args| {
-                    CustomElementCallCounter::new(
-                        Rc::clone(&num_calls_connected),
-                        Rc::clone(&num_calls_disconnected),
-                        Rc::clone(&num_calls_adopted),
-                        Rc::clone(&num_calls_attribute_changed),
-                        Rc::clone(&num_calls_handle_event),
-                    )
-                },
-                vec![String::from("observed")],
-                CustomElementConfiguration {
-                    element_constructor: &HTML_ELEMENT_CONSTRUCTOR,
-                },
-            )
-        };
-        closure.forget();
+            instance
+                .set_attribute("unobserved", "Hello, world")
+                .unwrap();
 
-        let name = helpers::get_random_custom_element_name();
-        window
-            .custom_elements()
-            .define(&name, &constructor)
-            .unwrap();
+            assert_eq!(*call_counters.num_calls_attribute_changed.borrow(), 0);
 
-        let instance = document.create_element(&name).unwrap();
+            // DOES increment observed attributes
 
-        // CONNECTED
+            assert_eq!(*call_counters.num_calls_attribute_changed.borrow(), 0);
 
-        assert_eq!(*num_calls_connected.borrow(), 0);
+            instance.set_attribute("observed", "Hello, world").unwrap();
 
-        document.body().unwrap().append_child(&instance).unwrap();
-
-        assert_eq!(*num_calls_connected.borrow(), 1);
-
-        // DISCONNECTED
-
-        assert_eq!(*num_calls_disconnected.borrow(), 0);
-
-        document.body().unwrap().remove_child(&instance).unwrap();
-
-        assert_eq!(*num_calls_disconnected.borrow(), 1);
-
-        // ADOPTED
-
-        assert_eq!(*num_calls_adopted.borrow(), 0);
-
-        let new_document = document
-            .implementation()
-            .unwrap()
-            .create_html_document()
-            .unwrap();
-
-        new_document.adopt_node(&instance).unwrap();
-
-        assert_eq!(*num_calls_adopted.borrow(), 1);
-
-        // ATTRIBUTE CHANGED
-        // does not increment unobserved attributes
-
-        assert_eq!(*num_calls_attributed_changed.borrow(), 0);
-
-        instance
-            .set_attribute("unobserved", "Hello, world")
-            .unwrap();
-
-        assert_eq!(*num_calls_attributed_changed.borrow(), 0);
-
-        // does increment unobserved attributes
-
-        assert_eq!(*num_calls_attributed_changed.borrow(), 0);
-
-        instance.set_attribute("observed", "Hello, world").unwrap();
-
-        assert_eq!(*num_calls_attributed_changed.borrow(), 1);
+            assert_eq!(*call_counters.num_calls_attribute_changed.borrow(), 1);
+        }
     }
 }
