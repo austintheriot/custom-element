@@ -80,5 +80,5 @@ And in a separate terminal, run
 
 ```sh
 # runs Vite development server for web app
-yarn web-dev
+yarn dev
 ```
