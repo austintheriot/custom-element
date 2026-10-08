@@ -123,6 +123,7 @@ pub mod customized_built_in_custom_elements {
         assert_eq!(factory_calls.get(), 1);
         document.body().unwrap().append_child(&instance).unwrap();
         assert_eq!(connections.get(), 1);
+        instance.remove();
     }
 }
 

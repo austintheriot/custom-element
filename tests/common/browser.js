@@ -16,3 +16,88 @@ export function captureErrors(action) {
 export function nextTurn() {
   return new Promise(resolve => setTimeout(resolve, 0));
 }
+
+export function dispatchProbe(element, cancelable) {
+  const event = new Event('probe', { bubbles: true, cancelable });
+  const accepted = element.dispatchEvent(event);
+  return { event, accepted, currentTarget: event.currentTarget,
+    phase: event.eventPhase, path: event.composedPath() };
+}
+
+export function prepareProbe(element) {
+  const ancestor = document.createElement('div');
+  const counts = { target: 0, ancestor: 0 };
+  element.addEventListener('probe', element);
+  element.addEventListener('probe', () => counts.target++);
+  ancestor.addEventListener('probe', () => counts.ancestor++);
+  ancestor.append(element);
+  return { ancestor, counts };
+}
+
+export function shadowProbe(host) {
+  const root = host.attachShadow({ mode: 'open' });
+  const button = document.createElement('button');
+  root.append(button);
+  const seen = [];
+  host.addEventListener('probe', event => seen.push({
+    target: event.target, currentTarget: event.currentTarget,
+    path: event.composedPath(), phase: event.eventPhase,
+  }));
+  const event = new Event('probe', { bubbles: true, composed: true });
+  button.dispatchEvent(event);
+  return { button, event, seen };
+}
+
+export function moveCapability() {
+  return typeof Element.prototype.moveBefore === 'function';
+}
+
+export function moveBetweenParents(element) {
+  const source = document.createElement('div');
+  const destination = document.createElement('div');
+  document.body.append(source, destination);
+  source.append(element);
+  destination.moveBefore(element, null);
+  return { source, destination };
+}
+
+export function injectBridgeFailure(element) {
+  const bridge = element.struct;
+  const original = bridge.connectedCallback;
+  let attempts = 0;
+  let reported = 0;
+  try {
+    bridge.connectedCallback = () => {
+      attempts++;
+      throw new Error('controlled bridge failure');
+    };
+    try {
+      element.connectedCallback();
+    } catch (error) {
+      if (error.message === 'controlled bridge failure') reported++;
+    }
+    return { attempts, reported };
+  } finally {
+    bridge.connectedCallback = original;
+  }
+}
+
+export function plainUpgradeRecursion(name) {
+  const element = document.createElement(name);
+  document.body.append(element);
+  let bodyCount = 0;
+  let errorName = null;
+  class RecursiveElement extends HTMLElement {
+    constructor() {
+      super();
+      bodyCount++;
+      if (bodyCount === 1) {
+        try { document.createElement(name); }
+        catch (error) { errorName = error.name; }
+      }
+    }
+  }
+  customElements.define(name, RecursiveElement);
+  element.remove();
+  return { bodyCount, errorName };
+}
