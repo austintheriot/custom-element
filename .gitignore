@@ -4,3 +4,5 @@
 **/dist
 **/test
 **/pkg
+
+.worktrees/
