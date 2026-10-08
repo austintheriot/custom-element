@@ -46,9 +46,25 @@ pub mod autonomous_custom_elements {
 
 pub mod customized_built_in_custom_elements {
     use crate::common::helpers;
+    use custom_element::{
+        constructors::HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR, create_custom_element_with_config,
+        CustomElement, CustomElementConfiguration,
+    };
     use js_sys::{Array, Reflect};
+    use std::{cell::Cell, rc::Rc};
+    use wasm_bindgen::JsCast;
     use wasm_bindgen_test::*;
-    use web_sys::{window, ElementDefinitionOptions};
+    use web_sys::{window, ElementCreationOptions, ElementDefinitionOptions, HtmlParagraphElement};
+
+    struct ConnectedElement {
+        connections: Rc<Cell<u32>>,
+    }
+
+    impl CustomElement for ConnectedElement {
+        fn connected_callback(&mut self) {
+            self.connections.set(self.connections.get() + 1);
+        }
+    }
 
     #[wasm_bindgen_test]
     fn should_create_instance_from_constructor() {
@@ -71,7 +87,23 @@ pub mod customized_built_in_custom_elements {
     fn should_create_instance_from_document_create() {
         let window = window().unwrap();
         let document = window.document().unwrap();
-        let constructor = helpers::create_customized_built_in_element_constructor();
+        let factory_calls = Rc::new(Cell::new(0));
+        let connections = Rc::new(Cell::new(0));
+        let factory_calls_for_constructor = factory_calls.clone();
+        let connections_for_constructor = connections.clone();
+        let (factory, constructor) = create_custom_element_with_config(
+            move |_element, _arguments| {
+                factory_calls_for_constructor.set(factory_calls_for_constructor.get() + 1);
+                ConnectedElement {
+                    connections: connections_for_constructor.clone(),
+                }
+            },
+            vec![],
+            CustomElementConfiguration {
+                element_constructor: &HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
+            },
+        );
+        factory.forget();
         let name = helpers::get_random_custom_element_name();
         let mut options = ElementDefinitionOptions::new();
         options.extends("p");
@@ -80,9 +112,17 @@ pub mod customized_built_in_custom_elements {
             .define_with_options(&name, &constructor, &options)
             .unwrap();
 
-        let instance = document.create_element(&name).unwrap();
+        let creation_options = ElementCreationOptions::new();
+        creation_options.set_is(&name);
+        let instance = document
+            .create_element_with_element_creation_options("p", &creation_options)
+            .unwrap();
 
-        helpers::assert_is_custom_element_instance(&instance)
+        assert!(instance.is_instance_of::<HtmlParagraphElement>());
+        assert_eq!(instance.local_name(), "p");
+        assert_eq!(factory_calls.get(), 1);
+        document.body().unwrap().append_child(&instance).unwrap();
+        assert_eq!(connections.get(), 1);
     }
 }
 
