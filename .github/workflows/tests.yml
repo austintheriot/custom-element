@@ -4,11 +4,14 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   native-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - name: Update Rust toolchain
         run: |
           rustup update
@@ -24,15 +27,13 @@ jobs:
 
   browser-tests:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     strategy:
       fail-fast: false
       matrix:
         browser: [firefox, chromium]
         profile: [debug, release]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
       - name: Install Rust browser tools
         run: |
           rustup target add wasm32-unknown-unknown
