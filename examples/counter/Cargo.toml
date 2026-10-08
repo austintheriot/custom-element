@@ -24,3 +24,6 @@ wasm-bindgen = "0.2.100"
 log = "0.4"
 wasm-logger = "0.2.0"
 console_error_panic_hook = "0.1.5"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.50"

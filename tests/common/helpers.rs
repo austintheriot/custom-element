@@ -117,20 +117,20 @@ impl CustomElementCallCounter {
 }
 
 impl CustomElement for CustomElementCallCounter {
-    fn connected_callback(&mut self) {
+    fn connected_callback(&self) {
         *self.call_counters.num_calls_connected.borrow_mut() += 1;
     }
 
-    fn disconnected_callback(&mut self) {
+    fn disconnected_callback(&self) {
         *self.call_counters.num_calls_disconnected.borrow_mut() += 1;
     }
 
-    fn adopted_callback(&mut self) {
+    fn adopted_callback(&self) {
         *self.call_counters.num_calls_adopted.borrow_mut() += 1;
     }
 
     fn attribute_changed_callback(
-        &mut self,
+        &self,
         _name: &str,
         _old_value: wasm_bindgen::JsValue,
         _new_value: wasm_bindgen::JsValue,
@@ -138,7 +138,7 @@ impl CustomElement for CustomElementCallCounter {
         *self.call_counters.num_calls_attribute_changed.borrow_mut() += 1;
     }
 
-    fn handle_event(&mut self, _event: web_sys::Event) {
+    fn handle_event(&self, _event: web_sys::Event) {
         *self.call_counters.num_calls_handle_event.borrow_mut() += 1;
     }
 }

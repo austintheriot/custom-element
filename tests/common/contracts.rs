@@ -26,27 +26,27 @@ struct Recorder {
 }
 
 impl CustomElement for Recorder {
-    fn connected_callback(&mut self) {
+    fn connected_callback(&self) {
         (self.hook)(&self.element, Call::Connected);
     }
 
-    fn disconnected_callback(&mut self) {
+    fn disconnected_callback(&self) {
         (self.hook)(&self.element, Call::Disconnected);
     }
 
-    fn adopted_callback(&mut self) {
+    fn adopted_callback(&self) {
         (self.hook)(&self.element, Call::Adopted);
     }
 
-    fn connected_move_callback(&mut self) {
+    fn connected_move_callback(&self) {
         (self.hook)(&self.element, Call::Moved);
     }
 
-    fn handle_event(&mut self, event: web_sys::Event) {
+    fn handle_event(&self, event: web_sys::Event) {
         (self.hook)(&self.element, Call::Event(event));
     }
 
-    fn attribute_changed_callback(&mut self, name: &str, old: JsValue, new: JsValue) {
+    fn attribute_changed_callback(&self, name: &str, old: JsValue, new: JsValue) {
         (self.hook)(
             &self.element,
             Call::Attribute {

@@ -61,7 +61,7 @@ pub mod customized_built_in_custom_elements {
     }
 
     impl CustomElement for ConnectedElement {
-        fn connected_callback(&mut self) {
+        fn connected_callback(&self) {
             self.connections.set(self.connections.get() + 1);
         }
     }

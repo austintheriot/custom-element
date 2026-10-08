@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::{constructors::HTML_ELEMENT_CONSTRUCTOR, Bridge, CustomElement, GeneratedConstructor};
 
-type MakeStruct = Closure<dyn FnMut(JsValue, Array) -> JsValue>;
+type MakeStruct = Closure<dyn Fn(JsValue, Array) -> JsValue>;
 
 /// Javascript shim for wrapping Rust structs
 #[wasm_bindgen(module = "/src/createCustomElement.js")]
@@ -50,27 +50,27 @@ pub struct CustomElementResult {
 
 /// Create a custom element with the default configuration
 pub fn create_custom_element<
-    C: CustomElement + 'static,
-    F: FnMut(JsValue, Array) -> C + 'static,
+    Component: CustomElement + 'static,
+    Factory: Fn(JsValue, Array) -> Component + 'static,
 >(
-    create_cutom_element: F,
+    factory: Factory,
     attributes: Vec<String>,
 ) -> (MakeStruct, GeneratedConstructor) {
     let config = CustomElementConfiguration::default();
-    create_custom_element_with_config(create_cutom_element, attributes, config)
+    create_custom_element_with_config(factory, attributes, config)
 }
 
 /// Create a custom element with a custom configuration
 pub fn create_custom_element_with_config<
-    C: CustomElement + 'static,
-    F: FnMut(JsValue, Array) -> C + 'static,
+    Component: CustomElement + 'static,
+    Factory: Fn(JsValue, Array) -> Component + 'static,
 >(
-    mut create_cutom_element: F,
+    factory: Factory,
     attributes: Vec<String>,
     config: CustomElementConfiguration,
 ) -> (MakeStruct, GeneratedConstructor) {
     let closure = Closure::new(move |element, args| {
-        let bridge: Bridge = create_cutom_element(element, args).into();
+        let bridge: Bridge = factory(element, args).into();
         bridge.into()
     });
     let class = _create_custom_element(&closure, attributes, config.element_constructor);
