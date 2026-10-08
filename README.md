@@ -34,8 +34,9 @@ This crates provide the JavaScript shim necessary for extending an arbitrary sub
 
 ### Migrating to 0.2.0
 
-All six `CustomElement` callbacks now take `&self`. A component that changes
-state must use interior mutability. The factory passed to
+All six `CustomElement` callbacks now take `&self`. Use interior mutability
+when a callback changes Rust-owned state. A component can also keep its
+state in element attributes. The factory passed to
 `create_custom_element` now implements `Fn(JsValue, Array) -> Component`.
 It can capture shared configuration, but each call must create a component
 for the new element. Keep the returned closure alive while the registered

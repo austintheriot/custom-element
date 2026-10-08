@@ -4,7 +4,8 @@ use web_sys::Event;
 /// Defines callbacks forwarded from a browser custom element to a Rust component.
 ///
 /// Every callback takes `&self` and has a default no-op implementation.
-/// Use `Cell` or `RefCell` when a callback changes state. Browser operations
+/// Use `Cell` or `RefCell` when a callback changes Rust-owned state. A
+/// component can instead keep state in element attributes. Browser operations
 /// can invoke another callback before the current callback returns. End a
 /// conflicting `RefCell` guard before such an operation. A shared guard
 /// conflicts with a nested mutable borrow. A mutable guard conflicts with
