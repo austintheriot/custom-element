@@ -1,6 +1,6 @@
 # Shared receiver design review
 
-The design review found no blocking defects in shared receivers or shared callable factories. Four minor requirements gaps have been corrected. One additional test insight has also been incorporated. The remaining alternatives concern ergonomics and example design, not the soundness of the chosen trait.
+The design review found no blocking defects in shared receivers or shared callable factories. Four minor requirements gaps have been corrected. One additional test insight has also been incorporated. The attribute-only counter alternative is now accepted for the examples. Scalar and compound state examples remain required. These choices do not change the shared receiver API.
 
 Scope: `2026-10-07-shared-receiver-design.md`, with current Rust code, JavaScript forwarding, examples, and tests as context. This is a specification review. Production implementation has not started.
 
@@ -13,12 +13,12 @@ Five reviewers covered Rust/WebAssembly, API/browser contracts, bug patterns, st
 | R1 | Minor | 100 | The initial factory promise included same-type recursion during browser upgrades. | Narrowed the promise to browser-permitted paths. Added separate fresh-construction and upgrade tests. Confirmed the browser restriction experimentally. |
 | R2 | Minor | 94 | Counter acceptance tests omitted existing input boundaries. | Added plus/minus controls, zero and negative steps, removal, invalid numbers, and default-value requirements. |
 | R3 | Minor | 90 | Direct forwarding had no equal-value attribute regression case. | Added a guarded second same-value write. Require both invocations with original arguments and bounded termination. |
-| R4 | Minor | 88 | The counter migration did not establish state authority or reflection direction. | Cells drive arithmetic and rendering. Clicks commit before reflection. Attribute callbacks update and render without writing attributes back. |
+| R4 | Minor | 88 | The counter migration did not establish state authority or reflection direction. | Attributes now own the main counter state. Its callbacks render without reflecting values back. The separate scalar example retains the reviewed cell precommit pattern. |
 | R5 | Insight | 94 | Borrow success alone does not detect stale writes after reentry. | Require outer state `1`, nested state `2`, resumed observation `2`, and final state `2`. |
-| R6 | Insight | 75 | The counter can use attributes as its only state store. | Worth discussion. Keep the currently agreed cell-based example until that example choice changes. No trait change is required. |
+| R6 | Insight | 75 | The counter can use attributes as its only state store. | Accepted for the main counter example. Add separate Cell and RefCell examples. No trait change is required. |
 | R7 | Insight | 65 | Shared closure handlers can remove component-struct boilerplate. | Record as a future additive adapter. No demonstrated application need justifies including it in version 0.2. |
 
-The reviewers of R1 through R5 checked the revised requirements. All five items are resolved in the specification.
+The reviewers of R1 through R5 checked the original revisions. All five items remain addressed. The subsequent example decision replaces the main counter cache with attributes and retains scalar-state coverage in a separate example.
 
 ## Construction experiment
 
@@ -37,7 +37,7 @@ The experiment and results remain in `/tmp/custom-element-options/upgrade-check.
 
 The earlier eighteen prototype scenarios remain supporting evidence for callback timing, event cancellation, short state borrows, factory reentry, and delayed-write behavior. Implementation must still test the pinned `wasm-bindgen` 0.2.100 dependency. A source inspection confirmed that its closure implementation supports `Fn`; the final design has not yet been compiled against that version.
 
-## Alternative one Use attributes as counter state
+## Accepted example Use attributes as counter state
 
 The counter already has helpers that parse its public count and step attributes. It can reuse those helpers for both arithmetic and rendering, then delete the cached fields:
 
@@ -60,7 +60,7 @@ The attribute callback renders without reflecting attributes again. No new libra
 
 The costs are repeated parsing and browser access. Private state and multi-field invariants still need an application-owned representation. This choice also stops the counter from demonstrating private scalar state with `Cell`.
 
-Recommendation: discuss this as an example simplification. Retain a separate `Cell` example if the counter adopts attributes as its state store. The sketch has not been compiled as a migrated counter.
+Decision: include this simplification in the counter example. Require separate runnable `Cell` and scoped `RefCell` examples with behavior tests. The sketch has not been compiled as a migrated counter.
 
 ## Alternative two Shared handler bundles
 
@@ -125,6 +125,18 @@ Recommendation: keep this as a separate experimental architecture. The current c
 
 The chosen trait remains the smallest change that removes the library's exclusive callback and factory borrows while preserving synchronous forwarding. No reviewer identified a need for a library-owned state helper, scheduler, new dependency, or different component owner.
 
-The immediate discussion item is the counter example's representation. The specification currently retains `Cell` fields. Handler bundles remain a later ergonomic option. Scoped capabilities and continuations have stronger local structure but exceed the agreed thin-wrapper scope.
+The counter will use attributes as its sole state source. Separate runnable examples will demonstrate `Cell` and scoped `RefCell` state. The acceptance matrix now covers forwarding, state, reentry, events, construction, lifetime, errors, and example behavior. Handler bundles remain a later ergonomic option. Scoped capabilities and continuations exceed the agreed thin-wrapper scope.
 
 The implementation plan must turn the specified browser behavior into failing and passing tests. No implementation, release, publication, or claim of cross-browser completion follows from this review.
+
+## Example and test requirements followup
+
+A sixth reviewer examined the expanded test contract after the example decision. The repository currently has twelve browser tests and no example behavior tests.
+
+The review identified a false positive in the existing customized built-in creation test. Creating the registered tag and asserting only `HtmlElement` does not establish that the configured paragraph factory ran. The specification now requires the correct `is` creation path, paragraph identity, and factory/lifecycle evidence.
+
+The specification also requires tests against executable example code rather than copied fixtures. It explicitly covers each nested export, exact null/empty/string attribute distinctions, live event identity and context, retained factories across turns, and a real reentry path in the compound example.
+
+The required matrix includes the root suite and all three state-example suites in development and release builds on Chromium and Firefox. Unsupported optional browser features must be reported separately. Test setup must capture unexpected browser errors without globally suppressing failures.
+
+These changes define required implementation evidence. No new production examples or runtime tests have been implemented yet.
