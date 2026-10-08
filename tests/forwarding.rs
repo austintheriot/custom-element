@@ -17,6 +17,8 @@ extern "C" {
     fn move_capability() -> bool;
     #[wasm_bindgen(js_name = moveBetweenParents)]
     fn move_between_parents(element: &HtmlElement) -> JsValue;
+    #[wasm_bindgen(js_name = connectWithPostEffectFailure)]
+    fn connect_with_post_effect_failure(element: &HtmlElement);
     #[wasm_bindgen(js_name = injectBridgeFailure)]
     fn inject_bridge_failure(element: &HtmlElement) -> JsValue;
 }
@@ -89,7 +91,7 @@ fn forwards_each_callback_with_original_arguments() {
         });
         let element = create_recorder(hook);
 
-        invoke(element.as_ref(), method, &arguments).unwrap();
+        common::assert_no_browser_errors(|| invoke(element.as_ref(), method, &arguments).unwrap());
 
         let actual_calls = std::mem::take(&mut *calls.borrow_mut());
         assert_eq!(actual_calls.len(), 1, "{method} call count");
@@ -108,19 +110,23 @@ fn default_callbacks_accept_every_invocation() {
             create_custom_element(|_element, _arguments| Empty, vec!["observed".to_owned()]);
         factory.forget();
         let name = common::helpers::get_random_custom_element_name();
-        window()
-            .unwrap()
-            .custom_elements()
-            .define(&name, &constructor)
-            .unwrap();
-        let element = window()
-            .unwrap()
-            .document()
-            .unwrap()
-            .create_element(&name)
-            .unwrap();
+        common::assert_no_browser_errors(|| {
+            window()
+                .unwrap()
+                .custom_elements()
+                .define(&name, &constructor)
+                .unwrap()
+        });
+        let element = common::assert_no_browser_errors(|| {
+            window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .create_element(&name)
+                .unwrap()
+        });
 
-        invoke(element.as_ref(), method, &arguments).unwrap();
+        common::assert_no_browser_errors(|| invoke(element.as_ref(), method, &arguments).unwrap());
     }
 }
 
@@ -139,14 +145,14 @@ fn observed_attribute_transitions_keep_exact_values() {
         ("null", JsValue::from_str("null"), JsValue::from_str("null")),
     ];
     for (value, expected_old, expected_new) in operations {
-        element.set_attribute("observed", value).unwrap();
+        common::assert_no_browser_errors(|| element.set_attribute("observed", value).unwrap());
         let recorded = attributes.borrow();
         let (name, old, new) = recorded.last().unwrap();
         assert_eq!(name, "observed");
         assert!(Object::is(old, &expected_old));
         assert!(Object::is(new, &expected_new));
     }
-    element.remove_attribute("observed").unwrap();
+    common::assert_no_browser_errors(|| element.remove_attribute("observed").unwrap());
     {
         let recorded = attributes.borrow();
         let (name, old, new) = recorded.last().unwrap();
@@ -155,18 +161,20 @@ fn observed_attribute_transitions_keep_exact_values() {
         assert!(Object::is(new, &JsValue::NULL));
         assert_eq!(recorded.len(), 4);
     }
-    element.set_attribute("unobserved", "ignored").unwrap();
+    common::assert_no_browser_errors(|| element.set_attribute("unobserved", "ignored").unwrap());
     assert_eq!(attributes.borrow().len(), 4);
-    window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .body()
-        .unwrap()
-        .append_child(&element)
-        .unwrap();
-    element.remove();
-    element.set_attribute("observed", "detached").unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .body()
+            .unwrap()
+            .append_child(&element)
+            .unwrap()
+    });
+    common::assert_no_browser_errors(|| element.remove());
+    common::assert_no_browser_errors(|| element.set_attribute("observed", "detached").unwrap());
     let recorded = attributes.borrow();
     assert_eq!(recorded.len(), 5);
     assert!(Object::is(&recorded[4].1, &JsValue::NULL));
@@ -187,16 +195,16 @@ fn lifecycle_traces_connection_disconnection_adoption_and_reconnection() {
         recorded.borrow_mut().push(label);
     }));
     let document = window().unwrap().document().unwrap();
-    document.body().unwrap().append_child(&element).unwrap();
-    element.remove();
-    document.body().unwrap().append_child(&element).unwrap();
+    common::assert_no_browser_errors(|| document.body().unwrap().append_child(&element).unwrap());
+    common::assert_no_browser_errors(|| element.remove());
+    common::assert_no_browser_errors(|| document.body().unwrap().append_child(&element).unwrap());
     let other = document
         .implementation()
         .unwrap()
         .create_html_document()
         .unwrap();
-    other.adopt_node(&element).unwrap();
-    other.body().unwrap().append_child(&element).unwrap();
+    common::assert_no_browser_errors(|| other.adopt_node(&element).unwrap());
+    common::assert_no_browser_errors(|| other.body().unwrap().append_child(&element).unwrap());
     assert_eq!(
         *trace.borrow(),
         vec![
@@ -214,7 +222,7 @@ fn lifecycle_traces_connection_disconnection_adoption_and_reconnection() {
         .filter(|call| **call == "connected")
         .count();
     assert_eq!(connected, 3);
-    element.remove();
+    common::assert_no_browser_errors(|| element.remove());
 }
 
 #[wasm_bindgen_test]
@@ -235,7 +243,7 @@ fn native_move_reports_capability_and_preserves_connection() {
         return;
     }
     wasm_bindgen_test::console_log!("native move capability: supported");
-    let parents = move_between_parents(&element);
+    let parents = common::assert_no_browser_errors(|| move_between_parents(&element));
     assert_eq!(*trace.borrow(), vec!["connected", "moved"]);
     let source: HtmlElement = Reflect::get(&parents, &JsValue::from_str("source"))
         .unwrap()
@@ -245,8 +253,8 @@ fn native_move_reports_capability_and_preserves_connection() {
         .unwrap()
         .dyn_into()
         .unwrap();
-    source.remove();
-    destination.remove();
+    common::assert_no_browser_errors(|| source.remove());
+    common::assert_no_browser_errors(|| destination.remove());
 }
 
 struct RecordingBridge(Rc<RefCell<Vec<&'static str>>>);
@@ -295,7 +303,7 @@ fn immutable_bridge_construction_paths_forward_all_methods() {
             ("attributeChangedCallback", attribute),
             ("handleEvent", event),
         ] {
-            invoke(&bridge, method, &arguments).unwrap();
+            common::assert_no_browser_errors(|| invoke(&bridge, method, &arguments).unwrap());
         }
         assert_eq!(
             *calls.borrow(),
@@ -327,5 +335,32 @@ fn controlled_bridge_error_reports_one_attempt() {
             .as_f64(),
         Some(1.0)
     );
-    invoke(element.as_ref(), "connectedCallback", &Array::new()).unwrap();
+    common::assert_no_browser_errors(|| {
+        invoke(element.as_ref(), "connectedCallback", &Array::new()).unwrap()
+    });
+}
+
+#[wasm_bindgen_test]
+fn observer_detects_error_after_callback_effect() {
+    let calls = Rc::new(RefCell::new(Vec::new()));
+    let recorded = calls.clone();
+    let element = create_recorder(Rc::new(move |_element, call| {
+        if matches!(call, Call::Connected) {
+            recorded.borrow_mut().push("connected");
+        }
+    }));
+    let (_, errors) = common::observe_errors(|| connect_with_post_effect_failure(&element));
+    assert_eq!(*calls.borrow(), vec!["connected"]);
+    assert_eq!(errors.length(), 1);
+    assert_eq!(
+        Reflect::get(&errors.get(0), &JsValue::from_str("message"))
+            .unwrap()
+            .as_string()
+            .as_deref(),
+        Some("controlled post-effect failure")
+    );
+    common::assert_no_browser_errors(|| {
+        invoke(element.as_ref(), "connectedCallback", &Array::new()).unwrap()
+    });
+    assert_eq!(*calls.borrow(), vec!["connected", "connected"]);
 }

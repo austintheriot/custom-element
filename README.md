@@ -108,6 +108,33 @@ factory.forget();
 let _ = constructor;
 ```
 
+For a factory that previously changed a captured sequence, replace the mutable
+capture with `Cell`:
+
+```rust,no_run
+use std::cell::Cell;
+use custom_element::{create_custom_element, CustomElement};
+
+struct Item { sequence: u32 }
+impl CustomElement for Item {}
+
+let sequence = Cell::new(0);
+let (factory, constructor) = create_custom_element(
+    move |_element, _arguments| {
+        let next = sequence.get() + 1;
+        sequence.set(next);
+        Item { sequence: next }
+    },
+    vec![],
+);
+factory.forget();
+let _ = constructor;
+```
+
+For captured compound state, use `RefCell`. Copy the data needed for nested
+construction inside a short borrow scope. End that scope before creating
+another element, because its factory can borrow the same captured state.
+
 The runnable examples show [attribute-only state](examples/counter),
 [scalar `Cell` state](examples/cell_state), and
 [scoped `RefCell` state](examples/refcell_state).
@@ -123,8 +150,11 @@ value. Dropping a scope-local reference to `self` does not release a borrow
 held by an exported wrapper.
 
 Browser custom-element upgrade rules also apply independently of Rust
-borrowing. A constructor cannot perform recursive upgrades of the same
-element. Keep constructor work within browser custom-element restrictions.
+borrowing. While an existing element upgrades, its constructor cannot create
+another instance of the same registered type. The browser reports a `TypeError`.
+With `document.createElement`, the nested call returns an `HTMLUnknownElement`.
+Fresh construction can create another instance of the same type when
+application state permits reentry.
 
 ## Other libraries you may be interested in
 

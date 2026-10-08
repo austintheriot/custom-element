@@ -23,6 +23,8 @@ use common::next_turn;
 
 #[wasm_bindgen(module = "/tests/common/browser.js")]
 extern "C" {
+    #[wasm_bindgen(js_name = isFailedElement)]
+    fn is_failed_element(element: &JsValue) -> bool;
     #[wasm_bindgen(js_name = plainUpgradeRecursion)]
     fn plain_upgrade_recursion(name: &str) -> JsValue;
 }
@@ -59,18 +61,22 @@ fn factory_can_create_another_registered_element_before_returning() {
         vec![],
     );
     factory.forget();
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
 
-    let outer = window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .create_element(&name)
-        .unwrap();
+    let outer = common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .create_element(&name)
+            .unwrap()
+    });
 
     assert_eq!(calls.get(), 2);
     let recorded = instances.borrow();
@@ -106,17 +112,21 @@ fn recursive_factory_releases_state_before_nested_construction() {
         vec![],
     );
     factory.forget();
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
-    window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .create_element(&name)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .create_element(&name)
+            .unwrap()
+    });
     assert_eq!(*state.borrow(), vec!["enter", "enter", "return", "return"]);
 }
 
@@ -132,18 +142,23 @@ fn arguments_preserve_order_and_identity() {
         vec![],
     );
     let name = common::helpers::get_random_custom_element_name();
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
     let object = Object::new();
     let arguments = Array::new();
     arguments.push(&JsValue::from_f64(17.0));
     arguments.push(&JsValue::NULL);
     arguments.push(&object);
-    let element = Reflect::construct(&constructor, &arguments).unwrap();
-    let empty = Reflect::construct(&constructor, &Array::new()).unwrap();
+    let element =
+        common::assert_no_browser_errors(|| Reflect::construct(&constructor, &arguments).unwrap());
+    let empty = common::assert_no_browser_errors(|| {
+        Reflect::construct(&constructor, &Array::new()).unwrap()
+    });
     let seen = seen.borrow();
     assert_eq!(seen.len(), 2);
     assert!(Object::is(&seen[0].0, &element));
@@ -166,12 +181,16 @@ fn explicit_autonomous_configuration_constructs() {
         },
     );
     let name = common::helpers::get_random_custom_element_name();
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
-    let element = Reflect::construct(&constructor, &Array::new()).unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
+    let element = common::assert_no_browser_errors(|| {
+        Reflect::construct(&constructor, &Array::new()).unwrap()
+    });
     assert!(element.is_instance_of::<HtmlElement>());
     drop(factory);
 }
@@ -204,24 +223,28 @@ fn configured_paragraph_uses_correct_creation_path() {
         .unwrap();
     let creation_options = ElementCreationOptions::new();
     creation_options.set_is(&name);
-    let element = window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .create_element_with_element_creation_options("p", &creation_options)
-        .unwrap();
+    let element = common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .create_element_with_element_creation_options("p", &creation_options)
+            .unwrap()
+    });
     assert!(element.is_instance_of::<HtmlParagraphElement>());
     assert_eq!(element.local_name(), "p");
-    window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .body()
-        .unwrap()
-        .append_child(&element)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .body()
+            .unwrap()
+            .append_child(&element)
+            .unwrap()
+    });
     assert_eq!(connections.get(), 1);
-    element.remove();
+    common::assert_no_browser_errors(|| element.remove());
 }
 
 #[wasm_bindgen_test]
@@ -236,14 +259,20 @@ async fn factory_remains_callable_across_turns() {
         vec![],
     );
     let name = common::helpers::get_random_custom_element_name();
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
-    let first = Reflect::construct(&constructor, &Array::new()).unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
+    let first = common::assert_no_browser_errors(|| {
+        Reflect::construct(&constructor, &Array::new()).unwrap()
+    });
     JsFuture::from(next_turn()).await.unwrap();
-    let second = Reflect::construct(&constructor, &Array::new()).unwrap();
+    let second = common::assert_no_browser_errors(|| {
+        Reflect::construct(&constructor, &Array::new()).unwrap()
+    });
     assert_eq!(calls.get(), 2);
     assert!(!Object::is(&first, &second));
     drop(factory);
@@ -261,12 +290,14 @@ fn dropping_factory_fails_visibly() {
         vec![],
     );
     let name = common::helpers::get_random_custom_element_name();
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
-    Reflect::construct(&constructor, &Array::new()).unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
+    common::assert_no_browser_errors(|| Reflect::construct(&constructor, &Array::new()).unwrap());
     assert_eq!(calls.get(), 1);
     drop(factory);
     assert!(Reflect::construct(&constructor, &Array::new()).is_err());
@@ -289,18 +320,20 @@ fn factory_state_is_local_to_registration() {
             vec![],
         );
         let name = common::helpers::get_random_custom_element_name();
-        window()
-            .unwrap()
-            .custom_elements()
-            .define(&name, &constructor)
-            .unwrap();
+        common::assert_no_browser_errors(|| {
+            window()
+                .unwrap()
+                .custom_elements()
+                .define(&name, &constructor)
+                .unwrap()
+        });
         (factory, constructor, recorded)
     };
     let (first_factory, first, first_calls) = register();
     let (second_factory, second, second_calls) = register();
     for _ in 0..2 {
-        Reflect::construct(&first, &Array::new()).unwrap();
-        Reflect::construct(&second, &Array::new()).unwrap();
+        common::assert_no_browser_errors(|| Reflect::construct(&first, &Array::new()).unwrap());
+        common::assert_no_browser_errors(|| Reflect::construct(&second, &Array::new()).unwrap());
     }
     assert_eq!(*first_calls.borrow(), vec![1, 2]);
     assert_eq!(*second_calls.borrow(), vec![1, 2]);
@@ -337,13 +370,15 @@ fn cloned_element_has_separate_component() {
     );
     factory.forget();
     let name = common::helpers::get_random_custom_element_name();
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
     let document = window().unwrap().document().unwrap();
-    let original = document.create_element(&name).unwrap();
+    let original = common::assert_no_browser_errors(|| document.create_element(&name).unwrap());
     let clone = original
         .clone_node()
         .unwrap()
@@ -351,13 +386,13 @@ fn cloned_element_has_separate_component() {
         .unwrap();
     assert_eq!(calls.get(), 2);
     assert!(!Object::is(original.as_ref(), clone.as_ref()));
-    document.body().unwrap().append_child(&original).unwrap();
-    document.body().unwrap().append_child(&clone).unwrap();
-    original.remove();
-    document.body().unwrap().append_child(&original).unwrap();
+    common::assert_no_browser_errors(|| document.body().unwrap().append_child(&original).unwrap());
+    common::assert_no_browser_errors(|| document.body().unwrap().append_child(&clone).unwrap());
+    common::assert_no_browser_errors(|| original.remove());
+    common::assert_no_browser_errors(|| document.body().unwrap().append_child(&original).unwrap());
     assert_eq!(*observed.borrow(), vec![1, 1, 2]);
-    original.remove();
-    clone.remove();
+    common::assert_no_browser_errors(|| original.remove());
+    common::assert_no_browser_errors(|| clone.remove());
 }
 
 struct UpgradeRecorder(Rc<RefCell<Vec<&'static str>>>);
@@ -375,9 +410,9 @@ impl CustomElement for UpgradeRecorder {
 fn upgrade_initializes_bridge_before_callbacks() {
     let document = window().unwrap().document().unwrap();
     let name = common::helpers::get_random_custom_element_name();
-    let element = document.create_element(&name).unwrap();
-    element.set_attribute("observed", "existing").unwrap();
-    document.body().unwrap().append_child(&element).unwrap();
+    let element = common::assert_no_browser_errors(|| document.create_element(&name).unwrap());
+    common::assert_no_browser_errors(|| element.set_attribute("observed", "existing").unwrap());
+    common::assert_no_browser_errors(|| document.body().unwrap().append_child(&element).unwrap());
     let trace = Rc::new(RefCell::new(Vec::new()));
     let recorded = trace.clone();
     let (factory, constructor) = create_custom_element(
@@ -387,13 +422,15 @@ fn upgrade_initializes_bridge_before_callbacks() {
         },
         vec!["observed".to_owned()],
     );
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
     assert_eq!(*trace.borrow(), vec!["factory", "attribute", "connected"]);
-    element.remove();
+    common::assert_no_browser_errors(|| element.remove());
     drop(factory);
 }
 
@@ -405,46 +442,68 @@ fn upgrade_recursion_preserves_browser_restriction() {
         .unwrap()
         .as_f64()
         .unwrap();
-    let baseline_error = Reflect::get(&baseline, &JsValue::from_str("errorName")).unwrap();
+    assert_eq!(baseline_count, 1.0);
+    let baseline_errors: Array = Reflect::get(&baseline, &JsValue::from_str("errors"))
+        .unwrap()
+        .dyn_into()
+        .unwrap();
+    assert_type_error(&baseline_errors);
+    assert_eq!(
+        Reflect::get(&baseline, &JsValue::from_str("failedNested"))
+            .unwrap()
+            .as_bool(),
+        Some(true)
+    );
 
     let name = common::helpers::get_random_custom_element_name();
     let document = window().unwrap().document().unwrap();
     let element = document.create_element(&name).unwrap();
     document.body().unwrap().append_child(&element).unwrap();
-    let count = Rc::new(RefCell::new(0));
-    let error_name = Rc::new(RefCell::new(JsValue::NULL));
+    let count = Rc::new(Cell::new(0));
+    let nested = Rc::new(RefCell::new(None));
     let recorded_count = count.clone();
-    let recorded_error = error_name.clone();
+    let recorded_nested = nested.clone();
     let nested_name = name.clone();
     let (factory, constructor) = create_custom_element(
         move |_element, _arguments| {
-            let current = {
-                let mut guard = recorded_count.borrow_mut();
-                *guard += 1;
-                *guard
-            };
+            let current = recorded_count.get() + 1;
+            recorded_count.set(current);
             if current == 1 {
-                if let Err(error) = window()
+                let element = window()
                     .unwrap()
                     .document()
                     .unwrap()
                     .create_element(&nested_name)
-                {
-                    *recorded_error.borrow_mut() =
-                        Reflect::get(&error, &JsValue::from_str("name")).unwrap();
-                }
+                    .unwrap();
+                *recorded_nested.borrow_mut() = Some(element);
             }
             Empty
         },
         vec![],
     );
-    window()
-        .unwrap()
-        .custom_elements()
-        .define(&name, &constructor)
-        .unwrap();
-    assert_eq!(f64::from(*count.borrow()), baseline_count);
-    assert!(Object::is(&error_name.borrow(), &baseline_error));
-    element.remove();
+    let (_, errors) = common::observe_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap();
+    });
+    assert_type_error(&errors);
+    assert_eq!(count.get(), 1);
+    assert!(is_failed_element(
+        nested.borrow().as_ref().unwrap().as_ref()
+    ));
+    common::assert_no_browser_errors(|| element.remove());
     drop(factory);
+}
+
+fn assert_type_error(errors: &Array) {
+    assert_eq!(errors.length(), 1);
+    assert_eq!(
+        Reflect::get(&errors.get(0), &JsValue::from_str("name"))
+            .unwrap()
+            .as_string()
+            .as_deref(),
+        Some("TypeError")
+    );
 }

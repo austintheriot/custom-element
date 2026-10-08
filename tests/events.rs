@@ -67,14 +67,16 @@ fn assert_dispatch(action: Action, accepted: bool, target_count: u32, ancestor_c
     }));
     let setup = prepare_probe(&element);
     let ancestor: HtmlElement = field(&setup, "ancestor").dyn_into().unwrap();
-    window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .body()
-        .unwrap()
-        .append_child(&ancestor)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .body()
+            .unwrap()
+            .append_child(&ancestor)
+            .unwrap()
+    });
     let result = dispatch_result.borrow();
     let result = result.as_ref().unwrap();
     assert_eq!(field(result, "accepted").as_bool(), Some(accepted));
@@ -101,7 +103,7 @@ fn assert_dispatch(action: Action, accepted: bool, target_count: u32, ancestor_c
         field(result, "path").dyn_into::<Array>().unwrap().length(),
         0
     );
-    ancestor.remove();
+    common::assert_no_browser_errors(|| ancestor.remove());
 }
 
 #[wasm_bindgen_test]
@@ -138,7 +140,7 @@ fn composed_event_retargets_at_shadow_host() {
             ));
         }
     }));
-    let result = shadow_probe(&host);
+    let result = common::assert_no_browser_errors(|| shadow_probe(&host));
     let button = field(&result, "button");
     let seen = seen.borrow();
     assert_eq!(seen.len(), 1);

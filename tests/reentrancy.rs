@@ -28,19 +28,21 @@ fn connection_delivers_nested_attribute_before_resuming() {
         Call::Attribute { .. } => recorded.borrow_mut().push("attribute"),
         _ => {}
     }));
-    window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .body()
-        .unwrap()
-        .append_child(&element)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .body()
+            .unwrap()
+            .append_child(&element)
+            .unwrap()
+    });
     assert_eq!(
         *trace.borrow(),
         vec!["connected:start", "attribute", "connected:end"]
     );
-    element.remove();
+    common::assert_no_browser_errors(|| element.remove());
 }
 
 #[wasm_bindgen_test]
@@ -78,18 +80,20 @@ fn every_export_accepts_nested_shared_entry() {
                 recorded.borrow_mut().push("nested");
             }
         }));
-        window()
-            .unwrap()
-            .document()
-            .unwrap()
-            .body()
-            .unwrap()
-            .append_child(&element)
-            .unwrap();
+        common::assert_no_browser_errors(|| {
+            window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .body()
+                .unwrap()
+                .append_child(&element)
+                .unwrap()
+        });
         if *trace.borrow() != vec!["outer:start", "nested", "outer:end"] {
             failed_methods.push(method);
         }
-        element.remove();
+        common::assert_no_browser_errors(|| element.remove());
     }
     assert!(
         failed_methods.is_empty(),
@@ -116,7 +120,7 @@ fn equal_attribute_write_reenters_before_outer_return() {
             recorded.borrow_mut().push(("exit", old_value, new_value));
         }
     }));
-    element.set_attribute("observed", "value").unwrap();
+    common::assert_no_browser_errors(|| element.set_attribute("observed", "value").unwrap());
     assert_eq!(
         *trace.borrow(),
         vec![
@@ -143,17 +147,19 @@ fn scoped_state_borrow_observes_nested_mutation() {
         Call::Attribute { .. } => *state_for_hook.borrow_mut() = 2,
         _ => {}
     }));
-    window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .body()
-        .unwrap()
-        .append_child(&element)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .body()
+            .unwrap()
+            .append_child(&element)
+            .unwrap()
+    });
     assert_eq!(resumed.get(), 2);
     assert_eq!(*state.borrow(), 2);
-    element.remove();
+    common::assert_no_browser_errors(|| element.remove());
 }
 
 #[wasm_bindgen_test]
@@ -184,14 +190,16 @@ fn held_borrows_report_conflicts_without_panicking() {
         }
         _ => {}
     }));
-    window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .body()
-        .unwrap()
-        .append_child(&element)
-        .unwrap();
+    common::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .body()
+            .unwrap()
+            .append_child(&element)
+            .unwrap()
+    });
     assert_eq!(
         *conflicts.borrow(),
         vec![
@@ -199,7 +207,7 @@ fn held_borrows_report_conflicts_without_panicking() {
             ("immutable".to_owned(), true, false)
         ]
     );
-    element.remove();
+    common::assert_no_browser_errors(|| element.remove());
 }
 
 #[wasm_bindgen_test]
@@ -239,7 +247,7 @@ fn two_instances_keep_separate_state_during_nested_chain() {
         }
     }));
     *second_handle.borrow_mut() = Some(second);
-    first.set_attribute("observed", "start").unwrap();
+    common::assert_no_browser_errors(|| first.set_attribute("observed", "start").unwrap());
     assert_eq!(
         *trace.borrow(),
         vec![

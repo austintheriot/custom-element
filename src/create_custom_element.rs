@@ -53,8 +53,35 @@ pub struct CustomElementResult {
 /// The factory implements `Fn` and runs once for each new element. It can
 /// capture shared configuration, but it must create a component for each
 /// call. Keep the returned closure alive while the constructor can create
-/// elements. Browser custom-element construction and upgrade restrictions
-/// still apply, including the restriction on recursive upgrades.
+/// elements.
+///
+/// Replace mutable scalar captures with `Cell`. For captured compound state,
+/// use `RefCell` and end each borrow before nested construction. A nested
+/// factory can access the same capture.
+///
+/// ```no_run
+/// use std::cell::Cell;
+/// use custom_element::{create_custom_element, CustomElement};
+///
+/// struct Item { sequence: u32 }
+/// impl CustomElement for Item {}
+///
+/// let sequence = Cell::new(0);
+/// let (factory, constructor) = create_custom_element(
+///     move |_element, _arguments| {
+///         let next = sequence.get() + 1;
+///         sequence.set(next);
+///         Item { sequence: next }
+///     },
+///     vec![],
+/// );
+/// factory.forget();
+/// let _ = constructor;
+/// ```
+///
+/// While an existing element upgrades, constructing another instance of the
+/// same registered type fails with a browser `TypeError`. Fresh construction
+/// permits same-type reentry when application state has no conflicting borrow.
 pub fn create_custom_element<
     Component: CustomElement + 'static,
     Factory: Fn(JsValue, Array) -> Component + 'static,

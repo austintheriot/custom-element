@@ -82,18 +82,34 @@ export function plainUpgradeRecursion(name) {
   const element = document.createElement(name);
   document.body.append(element);
   let bodyCount = 0;
-  let errorName = null;
+  let nested = null;
   class RecursiveElement extends HTMLElement {
     constructor() {
       super();
       bodyCount++;
-      if (bodyCount === 1) {
-        try { document.createElement(name); }
-        catch (error) { errorName = error.name; }
-      }
+      if (bodyCount === 1) nested = document.createElement(name);
     }
   }
-  customElements.define(name, RecursiveElement);
+  const errors = captureErrors(() => customElements.define(name, RecursiveElement));
   element.remove();
-  return { bodyCount, errorName };
+  return { bodyCount, errors, failedNested: nested instanceof HTMLUnknownElement };
+}
+
+export function isFailedElement(element) {
+  return element instanceof HTMLUnknownElement;
+}
+
+export function connectWithPostEffectFailure(element) {
+  const bridge = element.struct;
+  const original = bridge.connectedCallback;
+  try {
+    bridge.connectedCallback = function () {
+      original.call(this);
+      throw new Error('controlled post-effect failure');
+    };
+    document.body.append(element);
+  } finally {
+    bridge.connectedCallback = original;
+    element.remove();
+  }
 }
