@@ -30,6 +30,14 @@ To run the web app, run the following in the root directory of this crate
 trunk serve --open
 ```
 
-```sh
-trunk serve --open
-```
+## Counter attributes
+
+The `count` and `step` attributes hold the counter state. The example starts
+with `count="0"` and `step="1"`. The increment, plus, and minus buttons update
+those attributes. An external attribute change updates the display before the
+attribute operation returns, including when the element is detached.
+
+If an attribute is missing or is not a signed 32-bit integer, the counter uses
+0 for `count` or 1 for `step`. Rendering leaves the original attribute value
+unchanged. Removing an attribute also leaves it absent until a button changes
+that attribute.

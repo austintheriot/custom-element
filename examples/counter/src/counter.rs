@@ -85,6 +85,13 @@ impl Counter {
         let minus_button: HtmlButtonElement =
             document.create_element("button").unwrap().unchecked_into();
 
+        count_element.set_attribute("data-role", "display").unwrap();
+        click_button
+            .set_attribute("data-role", "increment")
+            .unwrap();
+        plus_button.set_attribute("data-role", "plus").unwrap();
+        minus_button.set_attribute("data-role", "minus").unwrap();
+
         shadow_root.append_child(&count_element).unwrap();
         shadow_root.append_child(&minus_button).unwrap();
         shadow_root.append_child(&click_button).unwrap();
