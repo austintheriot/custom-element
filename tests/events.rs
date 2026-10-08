@@ -126,18 +126,26 @@ fn noncancelable_event_ignores_cancellation() {
 
 #[wasm_bindgen_test]
 fn composed_event_retargets_at_shadow_host() {
-    let host = create_recorder(Rc::new(move |_element, _call| {}));
+    let seen = Rc::new(RefCell::new(Vec::<(Event, JsValue, JsValue, Array)>::new()));
+    let recorded = seen.clone();
+    let host = create_recorder(Rc::new(move |_element, call| {
+        if let Call::Event(event) = call {
+            recorded.borrow_mut().push((
+                event.clone(),
+                event.target().map_or(JsValue::NULL, JsValue::from),
+                event.current_target().map_or(JsValue::NULL, JsValue::from),
+                event.composed_path(),
+            ));
+        }
+    }));
     let result = shadow_probe(&host);
     let button = field(&result, "button");
-    let seen = field(&result, "seen").dyn_into::<Array>().unwrap();
-    assert_eq!(seen.length(), 1);
-    let observation = seen.get(0);
-    assert!(Object::is(&field(&observation, "target"), host.as_ref()));
-    assert!(Object::is(
-        &field(&observation, "currentTarget"),
-        host.as_ref()
-    ));
-    let path = field(&observation, "path").dyn_into::<Array>().unwrap();
+    let seen = seen.borrow();
+    assert_eq!(seen.len(), 1);
+    let (event, target, current_target, path) = &seen[0];
+    assert!(Object::is(event.as_ref(), &field(&result, "event")));
+    assert!(Object::is(target, host.as_ref()));
+    assert!(Object::is(current_target, host.as_ref()));
     assert!(path.includes(&button, 0));
     assert!(path.includes(host.as_ref(), 0));
 }

@@ -38,14 +38,10 @@ export function shadowProbe(host) {
   const root = host.attachShadow({ mode: 'open' });
   const button = document.createElement('button');
   root.append(button);
-  const seen = [];
-  host.addEventListener('probe', event => seen.push({
-    target: event.target, currentTarget: event.currentTarget,
-    path: event.composedPath(), phase: event.eventPhase,
-  }));
+  host.addEventListener('probe', host);
   const event = new Event('probe', { bubbles: true, composed: true });
   button.dispatchEvent(event);
-  return { button, event, seen };
+  return { button, event };
 }
 
 export function moveCapability() {
