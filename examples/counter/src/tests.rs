@@ -21,6 +21,11 @@ impl CounterFixture {
             .custom_elements()
             .define(name, &constructor)
             .unwrap();
+        Self::from_registered(name, count, step)
+    }
+
+    fn from_registered(name: &str, count: Option<&str>, step: Option<&str>) -> Self {
+        let browser = window().unwrap();
         let document = browser.document().unwrap();
         let element: HtmlElement = document.create_element(name).unwrap().dyn_into().unwrap();
         if let Some(count) = count {
@@ -166,19 +171,25 @@ fn invalid_step_uses_increment_default_and_preserves_raw_attribute() {
 
 #[wasm_bindgen_test]
 fn counter_instances_keep_independent_attributes_and_displays() {
-    let first = CounterFixture::new("test-counter-isolation-first", Some("4"), Some("2"));
-    let second = CounterFixture::new("test-counter-isolation-second", Some("9"), Some("3"));
+    let name = "test-counter-isolation";
+    let first = CounterFixture::new(name, Some("4"), Some("2"));
+    let second = CounterFixture::from_registered(name, Some("9"), Some("5"));
     first.assert_count(Some("4"), "Count is 4");
+    first.assert_step(Some("2"), "Increment by 2");
     second.assert_count(Some("9"), "Count is 9");
+    second.assert_step(Some("5"), "Increment by 5");
+    first.click("plus");
+    first.assert_step(Some("3"), "Increment by 3");
+    second.assert_step(Some("5"), "Increment by 5");
     first.click("increment");
-    first.assert_count(Some("6"), "Count is 6");
+    first.assert_count(Some("7"), "Count is 7");
     second.assert_count(Some("9"), "Count is 9");
     second.click("minus");
-    second.assert_step(Some("2"), "Increment by 2");
-    first.assert_step(Some("2"), "Increment by 2");
+    second.assert_step(Some("4"), "Increment by 4");
+    first.assert_step(Some("3"), "Increment by 3");
     second.click("increment");
-    second.assert_count(Some("11"), "Count is 11");
-    first.assert_count(Some("6"), "Count is 6");
+    second.assert_count(Some("13"), "Count is 13");
+    first.assert_count(Some("7"), "Count is 7");
 }
 
 #[wasm_bindgen_test]
