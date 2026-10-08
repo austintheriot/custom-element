@@ -1,14 +1,14 @@
 use wasm_bindgen::JsValue;
 use web_sys::Event;
 
-/// This trait is the focal point of this crate, and implementing it
-/// allows your Rust struct to be used as a custom element.
+/// Defines callbacks forwarded from a browser custom element to a Rust component.
 ///
-/// It specifies all the methods can be called from the JavaScript wrapper class.
-///
-/// All of these functions have been provided default, no-op implementations.
-/// You may optionally provide implementations to hook into the custom element
-/// lifecycle.
+/// Every callback takes `&self` and has a default no-op implementation.
+/// Use `Cell` or `RefCell` when a callback changes state. Browser operations
+/// can invoke another callback before the current callback returns. End a
+/// conflicting `RefCell` guard before such an operation. A shared guard
+/// conflicts with a nested mutable borrow. A mutable guard conflicts with
+/// every nested borrow.
 pub trait CustomElement {
     /// Called each time the element is added to the document    
     ///

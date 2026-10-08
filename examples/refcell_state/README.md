@@ -16,6 +16,15 @@ outer callback still holds a conflicting guard. The root contention tests
 show that failure with `try_borrow` and `try_borrow_mut` without making this
 example fail.
 
+A live shared guard also conflicts with a nested mutable borrow. `Rc` can
+share ownership of a model, but it does not remove either borrow conflict.
+State can change in a nested callback. Read the model again after browser
+code if later work needs the current value. Dropping a scope-local reference
+to `self` does not release a borrow held by an exported wrapper. Browser
+constructor upgrade rules independently restrict recursive element upgrades.
+See the [Cell counter](../cell_state) for scalar state and the
+[attribute-only counter](../counter) for state held in the document.
+
 ## Set up
 
 Install Rust and the WebAssembly target:

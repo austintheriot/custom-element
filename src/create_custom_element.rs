@@ -48,7 +48,13 @@ pub struct CustomElementResult {
     pub closure: MakeStruct,
 }
 
-/// Create a custom element with the default configuration
+/// Creates a custom element with the default configuration.
+///
+/// The factory implements `Fn` and runs once for each new element. It can
+/// capture shared configuration, but it must create a component for each
+/// call. Keep the returned closure alive while the constructor can create
+/// elements. Browser custom-element construction and upgrade restrictions
+/// still apply, including the restriction on recursive upgrades.
 pub fn create_custom_element<
     Component: CustomElement + 'static,
     Factory: Fn(JsValue, Array) -> Component + 'static,
@@ -60,7 +66,10 @@ pub fn create_custom_element<
     create_custom_element_with_config(factory, attributes, config)
 }
 
-/// Create a custom element with a custom configuration
+/// Creates a custom element with a custom configuration.
+///
+/// The factory has the same per-element and lifetime contract as
+/// [`create_custom_element`].
 pub fn create_custom_element_with_config<
     Component: CustomElement + 'static,
     Factory: Fn(JsValue, Array) -> Component + 'static,
