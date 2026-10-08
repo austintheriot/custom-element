@@ -5,36 +5,72 @@ on:
   pull_request:
 
 jobs:
-  build-and-test:
+  native-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - name: Install cargo-hack
-        uses: taiki-e/install-action@cargo-hack
-
-      - name: Install geckodriver
-        run: sudo apt-get install -y firefox
-
       - name: Update Rust toolchain
         run: |
           rustup update
           rustup component add clippy
           rustup install stable
-          rustup target add wasm32-unknown-unknown
-
-      - name: Install cargo tooling
-        run: |
-          cargo install wasm-bindgen-cli --vers "0.2.100"
-          cargo install cargo-make
-
       - name: Print versions
         run: |
           cargo --version --verbose
           rustc --version
           cargo clippy --version
-          cargo make --version
+      - name: Run native tests
+        run: cargo test --locked
 
-      - name: Test
+  browser-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, chromium]
+        profile: [debug, release]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust browser tools
         run: |
-          cargo make test
+          rustup target add wasm32-unknown-unknown
+          cargo install wasm-bindgen-cli --version 0.2.100 --locked
+      - id: chrome
+        if: matrix.browser == 'chromium'
+        uses: browser-actions/setup-chrome@48483d551c22a1fe6154c6a195ccc6d5773dc8c4
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+      - id: firefox
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@2ddc1281882c66dd6a359947714eed0a4b91afc1
+        with:
+          firefox-version: latest
+      - if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-geckodriver@fac5b0424c584257f32cf12c5eb4ba86014c34f8
+      - name: Configure browser binary
+        env:
+          TEST_BROWSER: ${{ matrix.browser }}
+          BROWSER_BINARY: ${{ steps.chrome.outputs.chrome-path || steps.firefox.outputs.firefox-path }}
+        run: |
+          "$BROWSER_BINARY" --version
+          python3 - <<'PYTHON'
+          import json
+          import os
+          from pathlib import Path
+
+          browser = os.environ["TEST_BROWSER"]
+          binary = os.environ["BROWSER_BINARY"]
+          if not binary or not Path(binary).is_file():
+              raise SystemExit(f"Browser binary is missing: {binary}")
+          if browser == "chromium":
+              capabilities = {"goog:chromeOptions": {"binary": binary, "args": ["--no-sandbox"]}}
+          else:
+              capabilities = {"moz:firefoxOptions": {"binary": binary}}
+          for directory in [".", "examples/counter", "examples/cell_state", "examples/refcell_state"]:
+              (Path(directory) / "webdriver.json").write_text(json.dumps(capabilities))
+          PYTHON
+      - name: Run browser tests
+        run: bash scripts/test-browser.sh "${{ matrix.browser }}" "${{ matrix.profile }}"

@@ -1,9 +1,6 @@
 [config]
 skip_core_tasks = true
 
-[env]
-GECKODRIVER = "geckodriver"
-
 [tasks.watch]
 command = "cargo"
 args = ["watch", "-x", "check", "-s", "cargo make test"]
@@ -23,12 +20,20 @@ args = [
 command = "cargo"
 args = [ "test" ]
 
+[tasks.test-browser-matrix]
+script = [
+	"bash scripts/test-browser.sh firefox debug",
+	"bash scripts/test-browser.sh firefox release",
+	"bash scripts/test-browser.sh chromium debug",
+	"bash scripts/test-browser.sh chromium release",
+]
+
 
 [tasks.test]
 run_task = { name = [
-	"test-wasm",
 	"test-native",
-], parallel = true }
+	"test-browser-matrix",
+] }
 
 
 [tasks.doc]
