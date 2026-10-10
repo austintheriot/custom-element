@@ -79,6 +79,60 @@ fn factory_can_create_another_registered_element_before_returning() {
     assert!(!Object::is(&recorded[0], &recorded[1]));
 }
 
+struct ConnectionCounter(Rc<Cell<u32>>);
+
+impl CustomElement for ConnectionCounter {
+    fn connected_callback(&self) {
+        self.0.set(self.0.get() + 1);
+    }
+}
+
+#[wasm_bindgen_test]
+fn fresh_construction_inside_a_factory_builds_a_complete_element() {
+    let name = common::names::get_random_custom_element_name();
+    let connections = Rc::new(Cell::new(0));
+    let nested = Rc::new(RefCell::new(None));
+    let recorded_connections = connections.clone();
+    let recorded_nested = nested.clone();
+    let nested_name = name.clone();
+    let (closure, constructor) = create_custom_element(
+        move |_element, _arguments| {
+            if recorded_nested.borrow().is_none() {
+                let element = window()
+                    .unwrap()
+                    .document()
+                    .unwrap()
+                    .create_element(&nested_name)
+                    .unwrap();
+                *recorded_nested.borrow_mut() = Some(element);
+            }
+            ConnectionCounter(recorded_connections.clone())
+        },
+        vec![],
+    );
+    closure.forget();
+    common::browser::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .custom_elements()
+            .define(&name, &constructor)
+            .unwrap()
+    });
+    let document = window().unwrap().document().unwrap();
+
+    let outer =
+        common::browser::assert_no_browser_errors(|| document.create_element(&name).unwrap());
+
+    let nested = nested.borrow_mut().take().unwrap();
+    assert!(!is_failed_element(nested.as_ref()));
+    assert!(!Object::is(outer.as_ref(), nested.as_ref()));
+    common::browser::assert_no_browser_errors(|| {
+        document.body().unwrap().append_child(&nested).unwrap()
+    });
+    assert_eq!(connections.get(), 1);
+    common::browser::assert_no_browser_errors(|| nested.remove());
+}
+
 #[wasm_bindgen_test]
 fn recursive_factory_releases_state_before_nested_construction() {
     let state = Rc::new(RefCell::new(Vec::new()));
