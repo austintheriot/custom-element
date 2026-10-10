@@ -2,9 +2,10 @@ use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-mod common;
-
-use common::helpers;
+mod common {
+    pub mod mock;
+    pub mod names;
+}
 
 pub mod autonomous_custom_elements {
     use std::{cell::RefCell, rc::Rc};
@@ -15,7 +16,7 @@ pub mod autonomous_custom_elements {
     use wasm_bindgen_test::*;
     use web_sys::window;
 
-    use crate::helpers::{self, MockCustomElement};
+    use crate::common::{mock::MockCustomElement, names};
 
     #[wasm_bindgen_test]
     fn should_pass_constructor_args_to_wasm() {
@@ -29,18 +30,18 @@ pub mod autonomous_custom_elements {
             // create custom element class
             let arg_peeked_from_constructor = Rc::clone(&arg_peeked_from_constructor);
             let (closure, constructor) = create_custom_element(
-                move |element, args| {
+                move |_element, args| {
                     arg_peeked_from_constructor
                         .borrow_mut()
                         .replace(args.get(0));
-                    MockCustomElement::new_with_args(element, args)
+                    MockCustomElement
                 },
                 vec![String::from("count")],
             );
             closure.forget();
 
             // define custom element
-            let name = helpers::get_random_custom_element_name();
+            let name = names::get_random_custom_element_name();
             window
                 .custom_elements()
                 .define(&name, &constructor)
@@ -71,7 +72,7 @@ pub mod customized_built_in_components {
     use wasm_bindgen_test::*;
     use web_sys::{window, ElementDefinitionOptions};
 
-    use crate::helpers::{self, MockCustomElement};
+    use crate::common::{mock::MockCustomElement, names};
 
     #[wasm_bindgen_test]
     fn should_pass_constructor_args_to_wasm() {
@@ -85,11 +86,11 @@ pub mod customized_built_in_components {
             // create custom element class
             let arg_peeked_from_constructor = Rc::clone(&arg_peeked_from_constructor);
             let (closure, constructor) = create_custom_element_with_config(
-                move |element, args| {
+                move |_element, args| {
                     arg_peeked_from_constructor
                         .borrow_mut()
                         .replace(args.get(0));
-                    MockCustomElement::new_with_args(element, args)
+                    MockCustomElement
                 },
                 vec![String::from("count")],
                 CustomElementConfiguration {
@@ -99,7 +100,7 @@ pub mod customized_built_in_components {
             closure.forget();
 
             // define custom element
-            let name = helpers::get_random_custom_element_name();
+            let name = names::get_random_custom_element_name();
             let mut options = ElementDefinitionOptions::new();
             options.extends("p");
             window

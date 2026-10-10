@@ -2,10 +2,23 @@ use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-mod common;
+mod common {
+    pub mod call_counters;
+    pub mod constructors;
+    pub mod mock;
+    pub mod names;
+    pub mod recorder;
+}
+
+fn assert_is_custom_element_instance(value: &wasm_bindgen::JsValue) {
+    use wasm_bindgen::JsCast;
+
+    assert!(value.is_object());
+    assert!(value.is_instance_of::<web_sys::HtmlElement>());
+}
 
 pub mod autonomous_custom_elements {
-    use crate::common::helpers;
+    use crate::common::{constructors, names};
     use js_sys::{Array, Reflect};
     use wasm_bindgen_test::*;
     use web_sys::{window, ElementDefinitionOptions};
@@ -13,8 +26,8 @@ pub mod autonomous_custom_elements {
     #[wasm_bindgen_test]
     fn should_create_instance_from_constructor() {
         let window = window().unwrap();
-        let constructor = helpers::create_autonomous_custom_element_constructor();
-        let name = helpers::get_random_custom_element_name();
+        let constructor = constructors::create_autonomous_custom_element_constructor();
+        let name = names::get_random_custom_element_name();
         window
             .custom_elements()
             .define(&name, &constructor)
@@ -22,15 +35,15 @@ pub mod autonomous_custom_elements {
 
         let element_from_constructor = Reflect::construct(&constructor, &Array::new()).unwrap();
 
-        helpers::assert_is_custom_element_instance(&element_from_constructor)
+        crate::assert_is_custom_element_instance(&element_from_constructor)
     }
 
     #[wasm_bindgen_test]
     fn should_create_instance_from_document_create() {
         let window = window().unwrap();
-        let constructor = helpers::create_autonomous_custom_element_constructor();
+        let constructor = constructors::create_autonomous_custom_element_constructor();
         let document = window.document().unwrap();
-        let name = helpers::get_random_custom_element_name();
+        let name = names::get_random_custom_element_name();
         let mut options = ElementDefinitionOptions::new();
         options.extends("p");
         window
@@ -40,12 +53,12 @@ pub mod autonomous_custom_elements {
 
         let instance = document.create_element(&name).unwrap();
 
-        helpers::assert_is_custom_element_instance(&instance)
+        crate::assert_is_custom_element_instance(&instance)
     }
 }
 
 pub mod customized_built_in_custom_elements {
-    use crate::common::helpers;
+    use crate::common::{constructors, names};
     use custom_element::{
         constructors::HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR, create_custom_element_with_config,
         CustomElement, CustomElementConfiguration,
@@ -69,8 +82,8 @@ pub mod customized_built_in_custom_elements {
     #[wasm_bindgen_test]
     fn should_create_instance_from_constructor() {
         let window = window().unwrap();
-        let constructor = helpers::create_customized_built_in_element_constructor();
-        let name = helpers::get_random_custom_element_name();
+        let constructor = constructors::create_customized_built_in_element_constructor();
+        let name = names::get_random_custom_element_name();
         let mut options = ElementDefinitionOptions::new();
         options.extends("p");
         window
@@ -80,7 +93,7 @@ pub mod customized_built_in_custom_elements {
 
         let element_from_constructor = Reflect::construct(&constructor, &Array::new()).unwrap();
 
-        helpers::assert_is_custom_element_instance(&element_from_constructor)
+        crate::assert_is_custom_element_instance(&element_from_constructor)
     }
 
     #[wasm_bindgen_test]
@@ -91,7 +104,7 @@ pub mod customized_built_in_custom_elements {
         let connections = Rc::new(Cell::new(0));
         let factory_calls_for_constructor = factory_calls.clone();
         let connections_for_constructor = connections.clone();
-        let (factory, constructor) = create_custom_element_with_config(
+        let (closure, constructor) = create_custom_element_with_config(
             move |_element, _arguments| {
                 factory_calls_for_constructor.set(factory_calls_for_constructor.get() + 1);
                 ConnectedElement {
@@ -103,8 +116,8 @@ pub mod customized_built_in_custom_elements {
                 element_constructor: &HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
             },
         );
-        factory.forget();
-        let name = helpers::get_random_custom_element_name();
+        closure.forget();
+        let name = names::get_random_custom_element_name();
         let mut options = ElementDefinitionOptions::new();
         options.extends("p");
         window
@@ -133,13 +146,14 @@ pub mod bridge {
         use wasm_bindgen_test::wasm_bindgen_test;
         use web_sys::window;
 
-        use crate::common::helpers;
+        use crate::common::call_counters;
 
         #[wasm_bindgen_test]
         fn should_forward_connected_calls() {
             let window = window().unwrap();
             let document = window.document().unwrap();
-            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+            let (instance, call_counters) =
+                call_counters::create_custom_element_with_call_counters();
 
             assert_eq!(*call_counters.num_calls_connected.borrow(), 0);
 
@@ -152,7 +166,8 @@ pub mod bridge {
         fn should_forward_disconnected_calls() {
             let window = window().unwrap();
             let document = window.document().unwrap();
-            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+            let (instance, call_counters) =
+                call_counters::create_custom_element_with_call_counters();
             document.body().unwrap().append_child(&instance).unwrap();
 
             assert_eq!(*call_counters.num_calls_disconnected.borrow(), 0);
@@ -166,7 +181,8 @@ pub mod bridge {
         fn should_forward_adopted_calls() {
             let window = window().unwrap();
             let document = window.document().unwrap();
-            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+            let (instance, call_counters) =
+                call_counters::create_custom_element_with_call_counters();
             document.body().unwrap().append_child(&instance).unwrap();
 
             assert_eq!(*call_counters.num_calls_adopted.borrow(), 0);
@@ -184,9 +200,8 @@ pub mod bridge {
 
         #[wasm_bindgen_test]
         fn should_forward_attribute_changed_calls() {
-            let window = window().unwrap();
-            let document = window.document().unwrap();
-            let (instance, call_counters) = helpers::create_custom_element_with_call_counters();
+            let (instance, call_counters) =
+                call_counters::create_custom_element_with_call_counters();
 
             // does NOT increment unobserved attributes
 

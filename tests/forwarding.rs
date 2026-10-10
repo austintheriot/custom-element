@@ -6,22 +6,21 @@ use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_test::*;
 use web_sys::{window, Event, HtmlElement};
 
-#[allow(dead_code)]
-mod common;
-
-use common::contracts::{create_recorder, invoke, Call, Hook};
-
-#[wasm_bindgen(module = "/tests/common/browser.js")]
-extern "C" {
-    #[wasm_bindgen(js_name = moveCapability)]
-    fn move_capability() -> bool;
-    #[wasm_bindgen(js_name = moveBetweenParents)]
-    fn move_between_parents(element: &HtmlElement) -> JsValue;
-    #[wasm_bindgen(js_name = connectWithPostEffectFailure)]
-    fn connect_with_post_effect_failure(element: &HtmlElement);
-    #[wasm_bindgen(js_name = injectBridgeFailure)]
-    fn inject_bridge_failure(element: &HtmlElement) -> JsValue;
+mod common {
+    pub mod browser;
+    pub mod names;
+    pub mod recorder;
+    pub mod reflect;
 }
+
+use common::{
+    browser::{
+        connect_with_post_effect_failure, inject_bridge_failure, move_between_parents,
+        move_capability,
+    },
+    recorder::{create_recorder, Call, Hook},
+    reflect::invoke,
+};
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -38,7 +37,7 @@ fn forwarding_cases() -> Vec<(&'static str, Array, Call)> {
         ("connectedCallback", Array::new(), Call::Connected),
         ("disconnectedCallback", Array::new(), Call::Disconnected),
         ("adoptedCallback", Array::new(), Call::Adopted),
-        ("connectedMoveCallback", Array::new(), Call::Moved),
+        ("connectedMoveCallback", Array::new(), Call::ConnectedMove),
         (
             "attributeChangedCallback",
             attribute_arguments,
@@ -57,7 +56,7 @@ fn assert_call(actual: Call, expected: Call) {
         (Call::Connected, Call::Connected)
         | (Call::Disconnected, Call::Disconnected)
         | (Call::Adopted, Call::Adopted)
-        | (Call::Moved, Call::Moved) => {}
+        | (Call::ConnectedMove, Call::ConnectedMove) => {}
         (
             Call::Attribute {
                 name: actual_name,
@@ -91,7 +90,9 @@ fn forwards_each_callback_with_original_arguments() {
         });
         let element = create_recorder(hook);
 
-        common::assert_no_browser_errors(|| invoke(element.as_ref(), method, &arguments).unwrap());
+        common::browser::assert_no_browser_errors(|| {
+            invoke(element.as_ref(), method, &arguments).unwrap()
+        });
 
         let actual_calls = std::mem::take(&mut *calls.borrow_mut());
         assert_eq!(actual_calls.len(), 1, "{method} call count");
@@ -106,18 +107,18 @@ impl CustomElement for Empty {}
 #[wasm_bindgen_test]
 fn default_callbacks_accept_every_invocation() {
     for (method, arguments, _expected) in forwarding_cases() {
-        let (factory, constructor) =
+        let (closure, constructor) =
             create_custom_element(|_element, _arguments| Empty, vec!["observed".to_owned()]);
-        factory.forget();
-        let name = common::helpers::get_random_custom_element_name();
-        common::assert_no_browser_errors(|| {
+        closure.forget();
+        let name = common::names::get_random_custom_element_name();
+        common::browser::assert_no_browser_errors(|| {
             window()
                 .unwrap()
                 .custom_elements()
                 .define(&name, &constructor)
                 .unwrap()
         });
-        let element = common::assert_no_browser_errors(|| {
+        let element = common::browser::assert_no_browser_errors(|| {
             window()
                 .unwrap()
                 .document()
@@ -126,7 +127,9 @@ fn default_callbacks_accept_every_invocation() {
                 .unwrap()
         });
 
-        common::assert_no_browser_errors(|| invoke(element.as_ref(), method, &arguments).unwrap());
+        common::browser::assert_no_browser_errors(|| {
+            invoke(element.as_ref(), method, &arguments).unwrap()
+        });
     }
 }
 
@@ -145,14 +148,16 @@ fn observed_attribute_transitions_keep_exact_values() {
         ("null", JsValue::from_str("null"), JsValue::from_str("null")),
     ];
     for (value, expected_old, expected_new) in operations {
-        common::assert_no_browser_errors(|| element.set_attribute("observed", value).unwrap());
+        common::browser::assert_no_browser_errors(|| {
+            element.set_attribute("observed", value).unwrap()
+        });
         let recorded = attributes.borrow();
         let (name, old, new) = recorded.last().unwrap();
         assert_eq!(name, "observed");
         assert!(Object::is(old, &expected_old));
         assert!(Object::is(new, &expected_new));
     }
-    common::assert_no_browser_errors(|| element.remove_attribute("observed").unwrap());
+    common::browser::assert_no_browser_errors(|| element.remove_attribute("observed").unwrap());
     {
         let recorded = attributes.borrow();
         let (name, old, new) = recorded.last().unwrap();
@@ -161,9 +166,11 @@ fn observed_attribute_transitions_keep_exact_values() {
         assert!(Object::is(new, &JsValue::NULL));
         assert_eq!(recorded.len(), 4);
     }
-    common::assert_no_browser_errors(|| element.set_attribute("unobserved", "ignored").unwrap());
+    common::browser::assert_no_browser_errors(|| {
+        element.set_attribute("unobserved", "ignored").unwrap()
+    });
     assert_eq!(attributes.borrow().len(), 4);
-    common::assert_no_browser_errors(|| {
+    common::browser::assert_no_browser_errors(|| {
         window()
             .unwrap()
             .document()
@@ -173,8 +180,10 @@ fn observed_attribute_transitions_keep_exact_values() {
             .append_child(&element)
             .unwrap()
     });
-    common::assert_no_browser_errors(|| element.remove());
-    common::assert_no_browser_errors(|| element.set_attribute("observed", "detached").unwrap());
+    common::browser::assert_no_browser_errors(|| element.remove());
+    common::browser::assert_no_browser_errors(|| {
+        element.set_attribute("observed", "detached").unwrap()
+    });
     let recorded = attributes.borrow();
     assert_eq!(recorded.len(), 5);
     assert!(Object::is(&recorded[4].1, &JsValue::NULL));
@@ -195,16 +204,22 @@ fn lifecycle_traces_connection_disconnection_adoption_and_reconnection() {
         recorded.borrow_mut().push(label);
     }));
     let document = window().unwrap().document().unwrap();
-    common::assert_no_browser_errors(|| document.body().unwrap().append_child(&element).unwrap());
-    common::assert_no_browser_errors(|| element.remove());
-    common::assert_no_browser_errors(|| document.body().unwrap().append_child(&element).unwrap());
+    common::browser::assert_no_browser_errors(|| {
+        document.body().unwrap().append_child(&element).unwrap()
+    });
+    common::browser::assert_no_browser_errors(|| element.remove());
+    common::browser::assert_no_browser_errors(|| {
+        document.body().unwrap().append_child(&element).unwrap()
+    });
     let other = document
         .implementation()
         .unwrap()
         .create_html_document()
         .unwrap();
-    common::assert_no_browser_errors(|| other.adopt_node(&element).unwrap());
-    common::assert_no_browser_errors(|| other.body().unwrap().append_child(&element).unwrap());
+    common::browser::assert_no_browser_errors(|| other.adopt_node(&element).unwrap());
+    common::browser::assert_no_browser_errors(|| {
+        other.body().unwrap().append_child(&element).unwrap()
+    });
     assert_eq!(
         *trace.borrow(),
         vec![
@@ -222,7 +237,7 @@ fn lifecycle_traces_connection_disconnection_adoption_and_reconnection() {
         .filter(|call| **call == "connected")
         .count();
     assert_eq!(connected, 3);
-    common::assert_no_browser_errors(|| element.remove());
+    common::browser::assert_no_browser_errors(|| element.remove());
 }
 
 #[wasm_bindgen_test]
@@ -233,7 +248,7 @@ fn native_move_reports_capability_and_preserves_connection() {
         let label = match call {
             Call::Connected => "connected",
             Call::Disconnected => "disconnected",
-            Call::Moved => "moved",
+            Call::ConnectedMove => "moved",
             _ => return,
         };
         recorded.borrow_mut().push(label);
@@ -243,7 +258,7 @@ fn native_move_reports_capability_and_preserves_connection() {
         return;
     }
     wasm_bindgen_test::console_log!("native move capability: supported");
-    let parents = common::assert_no_browser_errors(|| move_between_parents(&element));
+    let parents = common::browser::assert_no_browser_errors(|| move_between_parents(&element));
     assert_eq!(*trace.borrow(), vec!["connected", "moved"]);
     let source: HtmlElement = Reflect::get(&parents, &JsValue::from_str("source"))
         .unwrap()
@@ -253,8 +268,8 @@ fn native_move_reports_capability_and_preserves_connection() {
         .unwrap()
         .dyn_into()
         .unwrap();
-    common::assert_no_browser_errors(|| source.remove());
-    common::assert_no_browser_errors(|| destination.remove());
+    common::browser::assert_no_browser_errors(|| source.remove());
+    common::browser::assert_no_browser_errors(|| destination.remove());
 }
 
 struct RecordingBridge(Rc<RefCell<Vec<&'static str>>>);
@@ -303,7 +318,9 @@ fn immutable_bridge_construction_paths_forward_all_methods() {
             ("attributeChangedCallback", attribute),
             ("handleEvent", event),
         ] {
-            common::assert_no_browser_errors(|| invoke(&bridge, method, &arguments).unwrap());
+            common::browser::assert_no_browser_errors(|| {
+                invoke(&bridge, method, &arguments).unwrap()
+            });
         }
         assert_eq!(
             *calls.borrow(),
@@ -335,7 +352,7 @@ fn controlled_bridge_error_reports_one_attempt() {
             .as_f64(),
         Some(1.0)
     );
-    common::assert_no_browser_errors(|| {
+    common::browser::assert_no_browser_errors(|| {
         invoke(element.as_ref(), "connectedCallback", &Array::new()).unwrap()
     });
 }
@@ -349,7 +366,8 @@ fn observer_detects_error_after_callback_effect() {
             recorded.borrow_mut().push("connected");
         }
     }));
-    let (_, errors) = common::observe_errors(|| connect_with_post_effect_failure(&element));
+    let (_, errors) =
+        common::browser::capture_browser_errors(|| connect_with_post_effect_failure(&element));
     assert_eq!(*calls.borrow(), vec!["connected"]);
     assert_eq!(errors.length(), 1);
     assert_eq!(
@@ -359,7 +377,7 @@ fn observer_detects_error_after_callback_effect() {
             .as_deref(),
         Some("controlled post-effect failure")
     );
-    common::assert_no_browser_errors(|| {
+    common::browser::assert_no_browser_errors(|| {
         invoke(element.as_ref(), "connectedCallback", &Array::new()).unwrap()
     });
     assert_eq!(*calls.borrow(), vec!["connected", "connected"]);

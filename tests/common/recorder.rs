@@ -1,7 +1,6 @@
-use std::rc::Rc;
+use std::{fmt, rc::Rc};
 
-use custom_element::{create_custom_element, CustomElement, GeneratedConstructor};
-use js_sys::{Array, Function, Reflect};
+use custom_element::{create_custom_element, CustomElement};
 use wasm_bindgen::{JsCast, JsValue};
 use web_sys::HtmlElement;
 
@@ -9,13 +8,31 @@ pub enum Call {
     Connected,
     Disconnected,
     Adopted,
-    Moved,
+    ConnectedMove,
     Attribute {
         name: String,
         old: JsValue,
         new: JsValue,
     },
     Event(web_sys::Event),
+}
+
+impl fmt::Debug for Call {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Call::Connected => formatter.write_str("Connected"),
+            Call::Disconnected => formatter.write_str("Disconnected"),
+            Call::Adopted => formatter.write_str("Adopted"),
+            Call::ConnectedMove => formatter.write_str("ConnectedMove"),
+            Call::Attribute { name, old, new } => formatter
+                .debug_struct("Attribute")
+                .field("name", name)
+                .field("old", old)
+                .field("new", new)
+                .finish(),
+            Call::Event(event) => formatter.debug_tuple("Event").field(event).finish(),
+        }
+    }
 }
 
 pub type Hook = Rc<dyn Fn(&HtmlElement, Call)>;
@@ -39,7 +56,7 @@ impl CustomElement for Recorder {
     }
 
     fn connected_move_callback(&self) {
-        (self.hook)(&self.element, Call::Moved);
+        (self.hook)(&self.element, Call::ConnectedMove);
     }
 
     fn handle_event(&self, event: web_sys::Event) {
@@ -58,26 +75,21 @@ impl CustomElement for Recorder {
     }
 }
 
-pub fn register_recorder(hook: Hook) -> (String, GeneratedConstructor) {
-    let name = super::helpers::get_random_custom_element_name();
-    let (factory, constructor) = create_custom_element(
+pub fn create_recorder(hook: Hook) -> HtmlElement {
+    let name = super::names::get_random_custom_element_name();
+    let (closure, constructor) = create_custom_element(
         move |element, _arguments| Recorder {
             element: element.into(),
             hook: hook.clone(),
         },
         vec!["observed".to_owned()],
     );
-    factory.forget();
+    closure.forget();
     web_sys::window()
         .unwrap()
         .custom_elements()
         .define(&name, &constructor)
         .unwrap();
-    (name, constructor)
-}
-
-pub fn create_recorder(hook: Hook) -> HtmlElement {
-    let (name, _constructor) = register_recorder(hook);
     web_sys::window()
         .unwrap()
         .document()
@@ -86,9 +98,4 @@ pub fn create_recorder(hook: Hook) -> HtmlElement {
         .unwrap()
         .dyn_into()
         .unwrap()
-}
-
-pub fn invoke(target: &JsValue, method: &str, arguments: &Array) -> Result<JsValue, JsValue> {
-    let function = Reflect::get(target, &JsValue::from_str(method))?.dyn_into::<Function>()?;
-    function.apply(target, arguments)
 }

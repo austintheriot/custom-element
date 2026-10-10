@@ -5,22 +5,18 @@ use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_test::*;
 use web_sys::{window, Event, HtmlElement};
 
-#[allow(dead_code)]
-mod common;
+mod common {
+    pub mod browser;
+    pub mod names;
+    pub mod recorder;
+}
 
-use common::contracts::{create_recorder, Call};
+use common::{
+    browser::{dispatch_probe, prepare_probe, shadow_probe},
+    recorder::{create_recorder, Call},
+};
 
 wasm_bindgen_test_configure!(run_in_browser);
-
-#[wasm_bindgen(module = "/tests/common/browser.js")]
-extern "C" {
-    #[wasm_bindgen(js_name = dispatchProbe)]
-    fn dispatch_probe(element: &HtmlElement, cancelable: bool) -> JsValue;
-    #[wasm_bindgen(js_name = prepareProbe)]
-    fn prepare_probe(element: &HtmlElement) -> JsValue;
-    #[wasm_bindgen(js_name = shadowProbe)]
-    fn shadow_probe(host: &HtmlElement) -> JsValue;
-}
 
 fn field(value: &JsValue, name: &str) -> JsValue {
     Reflect::get(value, &JsValue::from_str(name)).unwrap()
@@ -67,7 +63,7 @@ fn assert_dispatch(action: Action, accepted: bool, target_count: u32, ancestor_c
     }));
     let setup = prepare_probe(&element);
     let ancestor: HtmlElement = field(&setup, "ancestor").dyn_into().unwrap();
-    common::assert_no_browser_errors(|| {
+    common::browser::assert_no_browser_errors(|| {
         window()
             .unwrap()
             .document()
@@ -103,7 +99,7 @@ fn assert_dispatch(action: Action, accepted: bool, target_count: u32, ancestor_c
         field(result, "path").dyn_into::<Array>().unwrap().length(),
         0
     );
-    common::assert_no_browser_errors(|| ancestor.remove());
+    common::browser::assert_no_browser_errors(|| ancestor.remove());
 }
 
 #[wasm_bindgen_test]
@@ -140,7 +136,7 @@ fn composed_event_retargets_at_shadow_host() {
             ));
         }
     }));
-    let result = common::assert_no_browser_errors(|| shadow_probe(&host));
+    let result = common::browser::assert_no_browser_errors(|| shadow_probe(&host));
     let button = field(&result, "button");
     let seen = seen.borrow();
     assert_eq!(seen.len(), 1);
