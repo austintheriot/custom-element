@@ -12,11 +12,11 @@ struct Fixture {
 
 impl Fixture {
     fn register(name: &str) -> Self {
-        let (factory, constructor) = custom_element::create_custom_element(
+        let (closure, constructor) = custom_element::create_custom_element(
             CompoundCounter::new,
             CompoundCounter::observed_attributes(),
         );
-        factory.forget();
+        closure.forget();
         window()
             .unwrap()
             .custom_elements()
@@ -99,7 +99,7 @@ fn one_click_updates_both_fields_before_return() {
     let seen = Rc::new(RefCell::new(Vec::new()));
     let retained_components = components.clone();
     let retained_seen = seen.clone();
-    let (factory, constructor) = custom_element::create_custom_element(
+    let (closure, constructor) = custom_element::create_custom_element(
         move |element, args| {
             let inner = Rc::new(CompoundCounter::new(element, args));
             retained_components.borrow_mut().push(inner.clone());
@@ -110,7 +110,7 @@ fn one_click_updates_both_fields_before_return() {
         },
         CompoundCounter::observed_attributes(),
     );
-    factory.forget();
+    closure.forget();
     window()
         .unwrap()
         .custom_elements()

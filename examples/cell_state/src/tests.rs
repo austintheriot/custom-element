@@ -6,18 +6,18 @@ use web_sys::{window, ShadowRoot};
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-struct CellFixture {
+struct Fixture {
     element: HtmlElement,
     shadow: ShadowRoot,
 }
 
-impl CellFixture {
+impl Fixture {
     fn register(name: &str) -> Self {
-        let (factory, constructor) = custom_element::create_custom_element(
+        let (closure, constructor) = custom_element::create_custom_element(
             CellCounter::new,
             CellCounter::observed_attributes(),
         );
-        factory.forget();
+        closure.forget();
         window()
             .unwrap()
             .custom_elements()
@@ -59,7 +59,7 @@ impl CellFixture {
     }
 }
 
-impl Drop for CellFixture {
+impl Drop for Fixture {
     fn drop(&mut self) {
         self.element.remove();
     }
@@ -92,7 +92,7 @@ fn click_commits_cell_before_nested_attribute_callback() {
     let seen = Rc::new(RefCell::new(Vec::new()));
     let retained_components = components.clone();
     let retained_seen = seen.clone();
-    let (factory, constructor) = custom_element::create_custom_element(
+    let (closure, constructor) = custom_element::create_custom_element(
         move |element, args| {
             let inner = Rc::new(CellCounter::new(element, args));
             retained_components.borrow_mut().push(inner.clone());
@@ -103,14 +103,14 @@ fn click_commits_cell_before_nested_attribute_callback() {
         },
         CellCounter::observed_attributes(),
     );
-    factory.forget();
+    closure.forget();
     let name = "cell-precommit-test";
     window()
         .unwrap()
         .custom_elements()
         .define(name, &constructor)
         .unwrap();
-    let fixture = CellFixture::from_registration(name);
+    let fixture = Fixture::from_registration(name);
     fixture.assert_count(None, "Count: 0");
     fixture.click();
     assert_eq!(&*seen.borrow(), &[1]);
@@ -120,7 +120,7 @@ fn click_commits_cell_before_nested_attribute_callback() {
 
 #[wasm_bindgen_test]
 fn clicks_render_immediately() {
-    let fixture = CellFixture::register("cell-clicks-test");
+    let fixture = Fixture::register("cell-clicks-test");
     fixture.assert_count(None, "Count: 0");
     fixture.click();
     fixture.assert_count(Some("1"), "Count: 1");
@@ -130,7 +130,7 @@ fn clicks_render_immediately() {
 
 #[wasm_bindgen_test]
 fn external_count_assignment_renders_immediately() {
-    let fixture = CellFixture::register("cell-external-test");
+    let fixture = Fixture::register("cell-external-test");
     fixture.element.set_attribute("count", "7").unwrap();
     fixture.assert_count(Some("7"), "Count: 7");
     fixture.click();
@@ -145,14 +145,14 @@ fn removed_and_invalid_attributes_reset_state() {
         ("overflow", "4294967296"),
     ] {
         let name = format!("cell-invalid-{suffix}-test");
-        let fixture = CellFixture::register(&name);
+        let fixture = Fixture::register(&name);
         fixture.element.set_attribute("count", "9").unwrap();
         fixture.element.set_attribute("count", raw).unwrap();
         fixture.assert_count(Some(raw), "Count: 0");
         fixture.click();
         fixture.assert_count(Some("1"), "Count: 1");
     }
-    let fixture = CellFixture::register("cell-removal-test");
+    let fixture = Fixture::register("cell-removal-test");
     fixture.element.set_attribute("count", "9").unwrap();
     fixture.element.remove_attribute("count").unwrap();
     fixture.assert_count(None, "Count: 0");
@@ -162,7 +162,7 @@ fn removed_and_invalid_attributes_reset_state() {
 
 #[wasm_bindgen_test]
 fn increment_saturates_at_maximum() {
-    let fixture = CellFixture::register("cell-saturation-test");
+    let fixture = Fixture::register("cell-saturation-test");
     fixture
         .element
         .set_attribute("count", "4294967295")
@@ -175,8 +175,8 @@ fn increment_saturates_at_maximum() {
 #[wasm_bindgen_test]
 fn instances_of_one_registration_have_independent_state() {
     let name = "cell-isolation-test";
-    let first = CellFixture::register(name);
-    let second = CellFixture::from_registration(name);
+    let first = Fixture::register(name);
+    let second = Fixture::from_registration(name);
     first.click();
     first.assert_count(Some("1"), "Count: 1");
     second.assert_count(None, "Count: 0");
@@ -188,7 +188,7 @@ fn instances_of_one_registration_have_independent_state() {
 
 #[wasm_bindgen_test]
 fn reconnection_restores_one_click_listener() {
-    let fixture = CellFixture::register("cell-reconnect-test");
+    let fixture = Fixture::register("cell-reconnect-test");
     fixture.click();
     fixture.element.remove();
     fixture.click();
@@ -209,7 +209,7 @@ fn reconnection_restores_one_click_listener() {
 
 #[wasm_bindgen_test]
 fn equal_attribute_write_renders_again() {
-    let fixture = CellFixture::register("cell-equal-test");
+    let fixture = Fixture::register("cell-equal-test");
     fixture.element.set_attribute("count", "5").unwrap();
     let display = fixture
         .shadow

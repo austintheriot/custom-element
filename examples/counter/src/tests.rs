@@ -2,29 +2,29 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
 use web_sys::{window, HtmlElement, ShadowRoot};
 
-use crate::counter::Counter;
+use crate::component::Counter;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-struct CounterFixture {
+struct Fixture {
     element: HtmlElement,
     shadow: ShadowRoot,
 }
 
-impl CounterFixture {
+impl Fixture {
     fn new(name: &str, count: Option<&str>, step: Option<&str>) -> Self {
-        let (factory, constructor) =
-            custom_element::create_custom_element(Counter::new, Counter::get_observed_attributes());
-        factory.forget();
+        let (closure, constructor) =
+            custom_element::create_custom_element(Counter::new, Counter::observed_attributes());
+        closure.forget();
         let browser = window().unwrap();
         browser
             .custom_elements()
             .define(name, &constructor)
             .unwrap();
-        Self::from_registered(name, count, step)
+        Self::from_registration(name, count, step)
     }
 
-    fn from_registered(name: &str, count: Option<&str>, step: Option<&str>) -> Self {
+    fn from_registration(name: &str, count: Option<&str>, step: Option<&str>) -> Self {
         let browser = window().unwrap();
         let document = browser.document().unwrap();
         let element: HtmlElement = document.create_element(name).unwrap().dyn_into().unwrap();
@@ -77,7 +77,7 @@ impl CounterFixture {
     }
 }
 
-impl Drop for CounterFixture {
+impl Drop for Fixture {
     fn drop(&mut self) {
         self.element.remove();
     }
@@ -85,14 +85,14 @@ impl Drop for CounterFixture {
 
 #[wasm_bindgen_test]
 fn missing_attributes_display_defaults_without_writing_attributes() {
-    let counter = CounterFixture::new("test-counter-defaults", None, None);
+    let counter = Fixture::new("test-counter-defaults", None, None);
     counter.assert_count(None, "Count is 0");
     counter.assert_step(None, "Increment by 1");
 }
 
 #[wasm_bindgen_test]
 fn two_clicks_update_count_and_display_before_returning() {
-    let counter = CounterFixture::new("test-counter-two-clicks", Some("4"), Some("2"));
+    let counter = Fixture::new("test-counter-two-clicks", Some("4"), Some("2"));
     counter.assert_count(Some("4"), "Count is 4");
     counter.assert_step(Some("2"), "Increment by 2");
     counter.click("increment");
@@ -103,7 +103,7 @@ fn two_clicks_update_count_and_display_before_returning() {
 
 #[wasm_bindgen_test]
 fn plus_and_minus_update_step_immediately() {
-    let counter = CounterFixture::new("test-counter-step-buttons", None, Some("1"));
+    let counter = Fixture::new("test-counter-step-buttons", None, Some("1"));
     counter.assert_step(Some("1"), "Increment by 1");
     counter.click("plus");
     counter.assert_step(Some("2"), "Increment by 2");
@@ -116,12 +116,12 @@ fn plus_and_minus_update_step_immediately() {
 
 #[wasm_bindgen_test]
 fn zero_step_keeps_count_and_negative_step_decrements_it() {
-    let zero_step = CounterFixture::new("test-counter-zero-step", Some("4"), Some("0"));
+    let zero_step = Fixture::new("test-counter-zero-step", Some("4"), Some("0"));
     zero_step.assert_count(Some("4"), "Count is 4");
     zero_step.click("increment");
     zero_step.assert_count(Some("4"), "Count is 4");
 
-    let negative_step = CounterFixture::new("test-counter-negative-step", Some("4"), Some("-2"));
+    let negative_step = Fixture::new("test-counter-negative-step", Some("4"), Some("-2"));
     negative_step.assert_count(Some("4"), "Count is 4");
     negative_step.click("increment");
     negative_step.assert_count(Some("2"), "Count is 2");
@@ -129,7 +129,7 @@ fn zero_step_keeps_count_and_negative_step_decrements_it() {
 
 #[wasm_bindgen_test]
 fn external_attribute_changes_render_without_clicks() {
-    let counter = CounterFixture::new("test-counter-external-attributes", Some("4"), Some("3"));
+    let counter = Fixture::new("test-counter-external-attributes", Some("4"), Some("3"));
     counter.assert_count(Some("4"), "Count is 4");
     counter.element.set_attribute("count", "9").unwrap();
     counter.assert_count(Some("9"), "Count is 9");
@@ -148,7 +148,7 @@ fn invalid_count_uses_display_default_and_preserves_raw_attribute() {
         ("test-counter-invalid-count-text", "abc"),
         ("test-counter-invalid-count-overflow", "2147483648"),
     ] {
-        let counter = CounterFixture::new(name, Some(raw_count), None);
+        let counter = Fixture::new(name, Some(raw_count), None);
         counter.assert_count(Some(raw_count), "Count is 0");
         counter.assert_step(None, "Increment by 1");
     }
@@ -160,7 +160,7 @@ fn invalid_step_uses_increment_default_and_preserves_raw_attribute() {
         ("test-counter-invalid-step-text", "abc"),
         ("test-counter-invalid-step-overflow", "2147483648"),
     ] {
-        let counter = CounterFixture::new(name, Some("0"), Some(raw_step));
+        let counter = Fixture::new(name, Some("0"), Some(raw_step));
         counter.assert_count(Some("0"), "Count is 0");
         counter.assert_step(Some(raw_step), "Increment by 1");
         counter.click("increment");
@@ -172,8 +172,8 @@ fn invalid_step_uses_increment_default_and_preserves_raw_attribute() {
 #[wasm_bindgen_test]
 fn counter_instances_keep_independent_attributes_and_displays() {
     let name = "test-counter-isolation";
-    let first = CounterFixture::new(name, Some("4"), Some("2"));
-    let second = CounterFixture::from_registered(name, Some("9"), Some("5"));
+    let first = Fixture::new(name, Some("4"), Some("2"));
+    let second = Fixture::from_registration(name, Some("9"), Some("5"));
     first.assert_count(Some("4"), "Count is 4");
     first.assert_step(Some("2"), "Increment by 2");
     second.assert_count(Some("9"), "Count is 9");
@@ -194,7 +194,7 @@ fn counter_instances_keep_independent_attributes_and_displays() {
 
 #[wasm_bindgen_test]
 fn detached_attribute_change_renders_and_reconnection_keeps_one_listener() {
-    let counter = CounterFixture::new("test-counter-reconnect", Some("4"), Some("2"));
+    let counter = Fixture::new("test-counter-reconnect", Some("4"), Some("2"));
     counter.assert_count(Some("4"), "Count is 4");
     counter.element.remove();
     counter.element.set_attribute("count", "9").unwrap();

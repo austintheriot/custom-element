@@ -1,8 +1,8 @@
-mod counter;
+mod component;
 #[cfg(test)]
 mod tests;
 
-use counter::Counter;
+use component::Counter;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -10,7 +10,7 @@ fn main() {
 
     let component_name = "my-counter";
     let (closure, constructor) =
-        custom_element::create_custom_element(Counter::new, Counter::get_observed_attributes());
+        custom_element::create_custom_element(Counter::new, Counter::observed_attributes());
     closure.forget();
 
     let window = web_sys::window().unwrap();

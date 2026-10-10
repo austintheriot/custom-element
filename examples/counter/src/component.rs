@@ -107,8 +107,8 @@ impl Counter {
     }
 
     fn render(&self) {
-        let count = self.get_count_attribute();
-        let step = self.get_step_attribute();
+        let count = self.count_attribute();
+        let step = self.step_attribute();
 
         self.count_display_element
             .set_inner_text(&format!("Count is {count}"));
@@ -119,27 +119,27 @@ impl Counter {
     }
 
     fn handle_increment_button_click(&self) {
-        let count = self.get_count_attribute() + self.get_step_attribute();
+        let count = self.count_attribute() + self.step_attribute();
         self.instance
             .set_attribute(Self::COUNT_ATTR_NAME, &count.to_string())
             .unwrap();
     }
 
     fn handle_minus_button_click(&self) {
-        let step = self.get_step_attribute() + Self::MINUS_AMOUNT;
+        let step = self.step_attribute() + Self::MINUS_AMOUNT;
         self.instance
             .set_attribute(Self::STEP_ATTR_NAME, &step.to_string())
             .unwrap();
     }
 
     fn handle_plus_button_click(&self) {
-        let step = self.get_step_attribute() + Self::PLUS_AMOUNT;
+        let step = self.step_attribute() + Self::PLUS_AMOUNT;
         self.instance
             .set_attribute(Self::STEP_ATTR_NAME, &step.to_string())
             .unwrap();
     }
 
-    fn get_count_attribute(&self) -> i32 {
+    fn count_attribute(&self) -> i32 {
         let Some(new_count_string) = self.instance.get_attribute(Self::COUNT_ATTR_NAME) else {
             return Self::DEFAULT_COUNT;
         };
@@ -149,7 +149,7 @@ impl Counter {
             .unwrap_or(Self::DEFAULT_COUNT)
     }
 
-    fn get_step_attribute(&self) -> i32 {
+    fn step_attribute(&self) -> i32 {
         let Some(new_count_string) = self.instance.get_attribute(Self::STEP_ATTR_NAME) else {
             return Self::DEFAULT_STEP;
         };
@@ -159,7 +159,7 @@ impl Counter {
             .unwrap_or(Self::DEFAULT_STEP)
     }
 
-    pub(crate) fn get_observed_attributes() -> Vec<String> {
+    pub(crate) fn observed_attributes() -> Vec<String> {
         vec![
             Self::COUNT_ATTR_NAME.to_string(),
             Self::STEP_ATTR_NAME.to_string(),

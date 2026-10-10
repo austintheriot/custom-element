@@ -3,11 +3,11 @@ mod component;
 use component::CompoundCounter;
 
 fn main() {
-    let (factory, constructor) = custom_element::create_custom_element(
+    let (closure, constructor) = custom_element::create_custom_element(
         CompoundCounter::new,
         CompoundCounter::observed_attributes(),
     );
-    factory.forget();
+    closure.forget();
 
     let browser = web_sys::window().unwrap();
     let document = browser.document().unwrap();
