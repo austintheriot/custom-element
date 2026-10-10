@@ -12,14 +12,14 @@ use crate::CustomElement;
 /// `Bridge` provides a hard-coded, non-trait-based implementation
 /// of  the trait function bindings that can actually be called from JS.
 #[wasm_bindgen]
-#[doc(hidden)]
+// `pub` inside the private `bridge` module, not `pub(crate)`: native builds see the
+// JavaScript exports as unused and warn on a crate-private type.
 pub struct Bridge {
     inner: Box<dyn CustomElement>,
 }
 
 impl Bridge {
-    #[doc(hidden)]
-    pub fn new<Component: CustomElement + 'static>(custom_element: Component) -> Self {
+    pub(crate) fn new<Component: CustomElement + 'static>(custom_element: Component) -> Self {
         Self {
             inner: Box::new(custom_element),
         }

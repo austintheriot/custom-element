@@ -5,7 +5,7 @@ use std::{
     rc::Rc,
 };
 
-use js_sys::{Array, Reflect};
+use js_sys::Array;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 use web_sys::{window, Event, HtmlElement};
@@ -76,7 +76,7 @@ fn every_export_accepts_nested_shared_entry() {
             if matches!(call, Call::Connected) && !guard.get() {
                 guard.set(true);
                 recorded.borrow_mut().push("outer:start");
-                let bridge = Reflect::get(element.as_ref(), &JsValue::from_str("struct")).unwrap();
+                let bridge = common::browser::bridge_of(element);
                 let nested_result = invoke(&bridge, method, &arguments);
                 assert!(nested_result.is_ok(), "nested {method} invocation failed");
                 recorded.borrow_mut().push("outer:end");

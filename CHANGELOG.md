@@ -45,6 +45,11 @@ All notable changes to this crate are in this file. The format follows
   new value instead of `JsValue`. `None` means the attribute was absent
   before the change or is absent after it. Replace
   `new_value.as_string()` with `new_value`.
+- `Bridge` is no longer public. It was a hidden implementation type.
+- The generated element no longer has a `struct` property. It keeps its
+  component under a symbol key, so code that sets `element.struct` no
+  longer replaces the component and stops every callback. The symbol is
+  internal and can change.
 
 ### Migrating a mutable capture
 
