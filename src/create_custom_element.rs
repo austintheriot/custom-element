@@ -17,23 +17,6 @@ extern "C" {
     ) -> Function;
 }
 
-/// Allows specifying details about how your custom element
-/// should be created. Currently, this is limited to specifying
-/// which constructor function your custom element should inherit from.
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub struct CustomElementConfiguration {
-    /// Which constructor your custom element should inherit from
-    pub element_constructor: Function,
-}
-
-impl Default for CustomElementConfiguration {
-    fn default() -> Self {
-        Self {
-            element_constructor: html_element_constructor(),
-        }
-    }
-}
-
 /// The result of creating a custom element.
 pub struct CustomElementResult {
     /// The [`CustomElementResult`].constructor is the generated
@@ -99,20 +82,23 @@ pub fn create_custom_element<
 >(
     factory: Factory,
 ) -> (MakeStruct, GeneratedConstructor) {
-    let config = CustomElementConfiguration::default();
-    create_custom_element_with_config(factory, config)
+    create_custom_element_extending(&html_element_constructor(), factory)
 }
 
-/// Creates a custom element with a custom configuration.
+/// Creates a custom element whose class extends `base`.
 ///
-/// The factory has the same per-element and lifetime contract as
+/// Pass a function from [`crate::constructors`] as `base`. For a customized
+/// built-in element, define the returned constructor with the matching
+/// `extends` option, for example `p` for
+/// [`crate::constructors::html_paragraph_element_constructor`]. The factory
+/// has the same per-element and lifetime contract as
 /// [`create_custom_element`].
-pub fn create_custom_element_with_config<
+pub fn create_custom_element_extending<
     Component: CustomElement + 'static,
     Factory: Fn(HtmlElement, Array) -> Component + 'static,
 >(
+    base: &Function,
     factory: Factory,
-    config: CustomElementConfiguration,
 ) -> (MakeStruct, GeneratedConstructor) {
     let attributes = Component::observed_attributes()
         .iter()
@@ -122,6 +108,6 @@ pub fn create_custom_element_with_config<
         let bridge: Bridge = factory(element.unchecked_into(), args).into();
         bridge.into()
     });
-    let class = _create_custom_element(&closure, attributes, &config.element_constructor);
+    let class = _create_custom_element(&closure, attributes, base);
     (closure, GeneratedConstructor(class))
 }

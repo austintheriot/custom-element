@@ -60,8 +60,7 @@ pub mod customized_built_in_components {
     use std::{cell::RefCell, rc::Rc};
 
     use custom_element::{
-        constructors::html_paragraph_element_constructor, create_custom_element_with_config,
-        CustomElementConfiguration,
+        constructors::html_paragraph_element_constructor, create_custom_element_extending,
     };
 
     use wasm_bindgen::JsValue;
@@ -81,15 +80,13 @@ pub mod customized_built_in_components {
         {
             // create custom element class
             let arg_peeked_from_constructor = Rc::clone(&arg_peeked_from_constructor);
-            let (closure, constructor) = create_custom_element_with_config(
+            let (closure, constructor) = create_custom_element_extending(
+                &html_paragraph_element_constructor(),
                 move |_element, args| {
                     arg_peeked_from_constructor
                         .borrow_mut()
                         .replace(args.get(0));
                     MockCustomElement
-                },
-                CustomElementConfiguration {
-                    element_constructor: html_paragraph_element_constructor(),
                 },
             );
             closure.forget();
