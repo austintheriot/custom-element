@@ -50,18 +50,18 @@ echo "$runner_version"
 "$driver_path" --version
 
 has_wasm_test_dependency() {
-  awk '
-    /^[[:space:]]*\[/ {
-      header = $0
-      sub(/[[:space:]]*#.*$/, "", header)
-      gsub(/^[[:space:]]*\[[[:space:]]*|[[:space:]]*\][[:space:]]*$/, "", header)
-      in_dev_dependencies = (header ~ /(^|\.)dev-dependencies$/)
-      if (header ~ /(^|\.)dev-dependencies\.wasm-bindgen-test$/) found = 1
-      next
-    }
-    in_dev_dependencies && /^[[:space:]]*wasm-bindgen-test([[:space:]]*\.[^=]*)?[[:space:]]*=/ { found = 1 }
-    END { exit !found }
-  ' "$1"
+  local metadata
+  metadata="$(cargo metadata --format-version 1 --no-deps --offline --manifest-path "$1")" || {
+    echo "cargo metadata failed for $1" >&2
+    exit 1
+  }
+  jq -e '.packages[0].dependencies | any(.name == "wasm-bindgen-test" and .kind == "dev")' \
+    <<<"$metadata" >/dev/null
+}
+
+command -v jq >/dev/null || {
+  echo "jq is required to select example crates" >&2
+  exit 1
 }
 
 manifests=(Cargo.toml)
