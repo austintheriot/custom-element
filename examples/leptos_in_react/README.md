@@ -57,7 +57,12 @@ Install nvm (for running the JS web app)
 - Unix: https://github.com/nvm-sh/nvm
 - Windows: https://github.com/coreybutler/nvm-windows
 
-Install the node version listed in the ./package.json file
+Install a Node version that matches `engines.node` in `./package.json`: Node 20.19 or later, Node 22.13 or later, or Node 24 or later. Vite 8 and ESLint 10 do not run on Node 18.
+
+```sh
+nvm install 24
+nvm use 24
+```
 
 Install Yarn
 

@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use custom_element::{CustomElement, GeneratedConstructor};
 
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -7,7 +9,9 @@ use web_sys::{HtmlElement, ShadowRootInit, ShadowRootMode};
 use crate::leptos_app::{App, AppProps};
 use crate::State;
 
-pub struct CustomElementApp;
+pub struct CustomElementApp {
+    _mounted_view: Box<dyn Any>,
+}
 
 impl CustomElement for CustomElementApp {
     fn connected_callback(&self) {}
@@ -48,10 +52,12 @@ impl CustomElementApp {
         let instance: HtmlElement = instance.into();
         let shadow_root_init = ShadowRootInit::new(ShadowRootMode::Open);
         let shadow_root = instance.attach_shadow(&shadow_root_init).unwrap();
-        leptos::mount_to(shadow_root.unchecked_into(), move || {
+        let mounted_view = leptos::mount::mount_to(shadow_root.unchecked_into(), move || {
             App(AppProps { state })
         });
 
-        CustomElementApp
+        CustomElementApp {
+            _mounted_view: Box::new(mounted_view),
+        }
     }
 }

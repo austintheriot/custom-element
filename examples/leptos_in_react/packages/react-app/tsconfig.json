@@ -8,7 +8,6 @@
 
 
     /* Absolute paths */
-    "baseUrl": "./",
     "paths": {
       "@compiled/*": ["./src/compiled/*"]
     },
