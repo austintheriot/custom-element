@@ -14,21 +14,22 @@
 //! [examples](https://github.com/austintheriot/custom-element/tree/main/examples) directory:
 //! - [`hello_world`](https://github.com/austintheriot/custom-element/tree/main/examples/hello_world) is the most basic web component you can create
 //! - [`counter`](https://github.com/austintheriot/custom-element/tree/main/examples/counter) is the standard
-//! counter example, showing how to re-render in response to events in pure Rust.
+//! counter example, with attributes as its state.
+//! - [`cell_state`](https://github.com/austintheriot/custom-element/tree/main/examples/cell_state)
+//! stores one value in a `Cell`.
+//! - [`refcell_state`](https://github.com/austintheriot/custom-element/tree/main/examples/refcell_state)
+//! stores compound state in a scoped `RefCell` borrow.
 //! - [`leptos_in_react`](https://github.com/austintheriot/custom-element/tree/main/examples/leptos_in_react)
 //! shows how you can mix Rust and JavaScript in the same codebase, and even mix Rust/JavaScript
 //! frameworks.
 //!
 //! # A Simple Hello World
 //!
-//! ```rust
+//! ```rust,no_run
 //! # use custom_element::CustomElement;
 //! # use js_sys::Array;
 //! # use wasm_bindgen::JsValue;
-//! # use web_sys::HtmlElement;
-//! #
-//! # // can't run web code in the docs
-//! # if false {
+//! # use web_sys::{HtmlElement, ShadowRootInit, ShadowRootMode};
 //! #
 //! struct HelloWorld;
 //!
@@ -38,8 +39,13 @@
 //! impl HelloWorld {
 //!     // called from the JavaScript custom element's `constructor`
 //!     fn new(instance: JsValue, _args: Array) -> Self {
+//!         // a constructor must not add children to the element itself,
+//!         // so the text goes into a shadow root
 //!         let instance: HtmlElement = instance.into();
-//!         instance.set_text_content(Some("Hello, world!"));
+//!         let shadow_root = instance
+//!             .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
+//!             .unwrap();
+//!         shadow_root.set_text_content(Some("Hello, world!"));
 //!         HelloWorld
 //!     }
 //! }
@@ -63,8 +69,35 @@
 //!     let body = window.document().unwrap().body().unwrap();
 //!     body.set_inner_html(&format!("<{0}></{0}>", component_name));
 //! }
-//! # }
 //! ```
+//!
+//! # Shared callbacks
+//!
+//! Each [`CustomElement`] callback takes a shared receiver. A component can
+//! change its state through standard interior mutability. This example runs
+//! without browser globals:
+//!
+//! ```
+//! use std::{cell::Cell, rc::Rc};
+//! use custom_element::CustomElement;
+//!
+//! struct Visits(Rc<Cell<u32>>);
+//! impl CustomElement for Visits {
+//!     fn connected_callback(&self) {
+//!         self.0.set(self.0.get() + 1);
+//!     }
+//! }
+//! let count = Rc::new(Cell::new(0));
+//! let visits = Visits(count.clone());
+//! CustomElement::connected_callback(&visits);
+//! assert_eq!(count.get(), 1);
+//! ```
+//!
+//! A callback can call browser code that synchronously invokes another
+//! callback. End any conflicting `RefCell` guard before that call. A shared
+//! guard conflicts with a nested mutable borrow, and a mutable guard
+//! conflicts with every nested borrow. Read state again after a nested call
+//! if later work needs its current value.
 
 mod bridge;
 mod create_custom_element;

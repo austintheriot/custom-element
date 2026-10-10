@@ -1,5 +1,9 @@
 # Hello, world!
 
+This example implements the shared `CustomElement` callbacks with their
+default no-op behavior. Its `HelloWorld::new` function works as an `Fn`
+factory because it can create a new component for every element.
+
 ## Set up
 
 Install rust using [rustup](https://www.rust-lang.org/tools/install)

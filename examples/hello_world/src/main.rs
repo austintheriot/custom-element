@@ -1,7 +1,7 @@
 use custom_element::CustomElement;
 use js_sys::Array;
 use wasm_bindgen::JsValue;
-use web_sys::HtmlElement;
+use web_sys::{HtmlElement, ShadowRootInit, ShadowRootMode};
 
 struct HelloWorld;
 
@@ -12,8 +12,13 @@ impl CustomElement for HelloWorld {}
 impl HelloWorld {
     // called from the JavaScript custom element's `constructor`
     fn new(instance: JsValue, _args: Array) -> Self {
+        // a constructor must not add children to the element itself,
+        // so the text goes into a shadow root
         let instance: HtmlElement = instance.into();
-        instance.set_text_content(Some("Hello, world!"));
+        let shadow_root = instance
+            .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
+            .unwrap();
+        shadow_root.set_text_content(Some("Hello, world!"));
         HelloWorld
     }
 }
