@@ -7,11 +7,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   native-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Update Rust toolchain
         run: |
           rustup update
@@ -30,48 +34,44 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [firefox, chromium]
+        browser: [firefox, chrome]
         profile: [debug, release]
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Install Rust browser tools
         run: |
           rustup target add wasm32-unknown-unknown
           cargo install wasm-bindgen-cli --version 0.2.100 --locked
       - id: chrome
-        if: matrix.browser == 'chromium'
-        uses: browser-actions/setup-chrome@48483d551c22a1fe6154c6a195ccc6d5773dc8c4
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
         with:
           chrome-version: stable
           install-chromedriver: true
       - id: firefox
         if: matrix.browser == 'firefox'
-        uses: browser-actions/setup-firefox@2ddc1281882c66dd6a359947714eed0a4b91afc1
+        uses: browser-actions/setup-firefox@0bc507ddf224827e3b1af68e014d5e42ab93e795 # v1.7.2
         with:
           firefox-version: latest
       - if: matrix.browser == 'firefox'
-        uses: browser-actions/setup-geckodriver@fac5b0424c584257f32cf12c5eb4ba86014c34f8
-      - name: Configure browser binary
+        uses: browser-actions/setup-geckodriver@fac5b0424c584257f32cf12c5eb4ba86014c34f8 # latest
+      - name: Run browser tests
         env:
-          TEST_BROWSER: ${{ matrix.browser }}
           BROWSER_BINARY: ${{ steps.chrome.outputs.chrome-path || steps.firefox.outputs.firefox-path }}
         run: |
           "$BROWSER_BINARY" --version
-          python3 - <<'PYTHON'
-          import json
-          import os
-          from pathlib import Path
+          bash scripts/test-browser.sh "${{ matrix.browser }}" "${{ matrix.profile }}"
 
-          browser = os.environ["TEST_BROWSER"]
-          binary = os.environ["BROWSER_BINARY"]
-          if not binary or not Path(binary).is_file():
-              raise SystemExit(f"Browser binary is missing: {binary}")
-          if browser == "chromium":
-              capabilities = {"goog:chromeOptions": {"binary": binary, "args": ["--no-sandbox"]}}
-          else:
-              capabilities = {"moz:firefoxOptions": {"binary": binary}}
-          for directory in [".", "examples/counter", "examples/cell_state", "examples/refcell_state"]:
-              (Path(directory) / "webdriver.json").write_text(json.dumps(capabilities))
-          PYTHON
-      - name: Run browser tests
-        run: bash scripts/test-browser.sh "${{ matrix.browser }}" "${{ matrix.profile }}"
+  build-and-test:
+    needs: [native-tests, browser-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every test job to succeed
+        env:
+          NATIVE_RESULT: ${{ needs.native-tests.result }}
+          BROWSER_RESULT: ${{ needs.browser-tests.result }}
+        run: |
+          echo "native-tests: $NATIVE_RESULT"
+          echo "browser-tests: $BROWSER_RESULT"
+          [[ "$NATIVE_RESULT" == success && "$BROWSER_RESULT" == success ]]
