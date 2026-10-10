@@ -79,11 +79,15 @@ pub struct CustomElementResult {
 /// let _ = constructor;
 /// ```
 ///
-/// The factory must not add attributes to the element, because the browser
-/// rejects a constructor that adds attributes. Setting an observed attribute
-/// inside the factory also runs `attributeChangedCallback` before the element
-/// holds its component, and the shim throws a `TypeError`. This happens on
-/// every construction path.
+/// The factory must not add attributes or children to the element. When
+/// `document.createElement` creates the element, the browser rejects such a
+/// constructor and returns an `HTMLUnknownElement` with no Rust component.
+/// The parser, an upgrade, and `new` keep the additions, so the defect stays
+/// hidden until a caller uses `document.createElement`. Add children to a
+/// shadow root, or add them in `connected_callback`. Setting an observed
+/// attribute inside the factory also runs `attributeChangedCallback` before
+/// the element holds its component, and the shim throws a `TypeError`. This
+/// `TypeError` happens on every construction path.
 ///
 /// While an existing element upgrades, constructing another instance of the
 /// same registered type makes the browser report a `TypeError`. The nested
