@@ -1,0 +1,16 @@
+[package]
+name = "refcell_state"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+custom-element = { path = "../../" }
+wasm-bindgen = "=0.2.100"
+js-sys = "=0.3.77"
+web-sys = { version = "=0.3.77", features = [
+    "Window", "Document", "Element", "Event", "EventTarget", "HtmlElement",
+    "CustomElementRegistry", "ShadowRoot", "ShadowRootInit", "ShadowRootMode",
+] }
+
+[dev-dependencies]
+wasm-bindgen-test = "=0.3.50"

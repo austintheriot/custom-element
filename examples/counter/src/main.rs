@@ -1,4 +1,6 @@
 mod component;
+#[cfg(test)]
+mod tests;
 
 use component::Counter;
 
