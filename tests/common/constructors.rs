@@ -1,6 +1,6 @@
 use custom_element::{
     constructors::html_paragraph_element_constructor, create_custom_element,
-    create_custom_element_with_config, CustomElementConfiguration, GeneratedConstructor,
+    create_custom_element_extending, GeneratedConstructor,
 };
 
 use super::mock::MockCustomElement;
@@ -13,11 +13,9 @@ pub fn create_autonomous_custom_element_constructor() -> GeneratedConstructor {
 }
 
 pub fn create_customized_built_in_element_constructor() -> GeneratedConstructor {
-    let (closure, constructor) = create_custom_element_with_config(
+    let (closure, constructor) = create_custom_element_extending(
+        &html_paragraph_element_constructor(),
         |_element_instance, _args| MockCustomElement,
-        CustomElementConfiguration {
-            element_constructor: html_paragraph_element_constructor(),
-        },
     );
     closure.forget();
     constructor

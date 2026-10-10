@@ -11,7 +11,7 @@ All notable changes to this crate are in this file. The format follows
 - All six `CustomElement` callbacks take `&self` instead of `&mut self`.
   Use interior mutability when a callback changes Rust-owned state.
 - The factory passed to `create_custom_element` and
-  `create_custom_element_with_config` is `Fn(HtmlElement, Array) -> Component`.
+  `create_custom_element_extending` is `Fn(HtmlElement, Array) -> Component`.
   It was `FnMut(JsValue, Array) -> Component`. The factory receives the
   element as `HtmlElement`, so it no longer converts a `JsValue`. The factory can capture shared configuration, but it must
   create a component for each call.
@@ -32,10 +32,12 @@ All notable changes to this crate are in this file. The format follows
   `html_paragraph_element_constructor()`, and the same for every other
   element. The statics used a `wasm-bindgen` form that is deprecated. The
   `HTMLDocument` entry is gone, because a document is not an element.
-- `CustomElementConfiguration` owns its `element_constructor` as a
-  `Function` instead of borrowing it, so the struct no longer implements
-  `Copy` and has no lifetime parameter.
-- `create_custom_element` and `create_custom_element_with_config` no longer
+- `create_custom_element_extending(base, factory)` replaces
+  `create_custom_element_with_config` and `CustomElementConfiguration`.
+  Replace `create_custom_element_with_config(factory,
+  CustomElementConfiguration { element_constructor: &CONSTRUCTOR })` with
+  `create_custom_element_extending(&constructor_function(), factory)`.
+- `create_custom_element` and `create_custom_element_extending` do not
   take an attribute list. Implement `CustomElement::observed_attributes` on
   the component type instead. It returns `&'static [&'static str]` and
   defaults to an empty list.

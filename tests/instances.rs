@@ -56,8 +56,8 @@ pub mod autonomous_custom_elements {
 pub mod customized_built_in_custom_elements {
     use crate::common::{constructors, names};
     use custom_element::{
-        constructors::html_paragraph_element_constructor, create_custom_element_with_config,
-        CustomElement, CustomElementConfiguration,
+        constructors::html_paragraph_element_constructor, create_custom_element_extending,
+        CustomElement,
     };
     use js_sys::{Array, Reflect};
     use std::{cell::Cell, rc::Rc};
@@ -100,15 +100,13 @@ pub mod customized_built_in_custom_elements {
         let connections = Rc::new(Cell::new(0));
         let factory_calls_for_constructor = factory_calls.clone();
         let connections_for_constructor = connections.clone();
-        let (closure, constructor) = create_custom_element_with_config(
+        let (closure, constructor) = create_custom_element_extending(
+            &html_paragraph_element_constructor(),
             move |_element, _arguments| {
                 factory_calls_for_constructor.set(factory_calls_for_constructor.get() + 1);
                 ConnectedElement {
                     connections: connections_for_constructor.clone(),
                 }
-            },
-            CustomElementConfiguration {
-                element_constructor: html_paragraph_element_constructor(),
             },
         );
         closure.forget();

@@ -7,8 +7,7 @@ use std::{
 
 use custom_element::{
     constructors::{html_element_constructor, html_paragraph_element_constructor},
-    create_custom_element, create_custom_element_with_config, CustomElement,
-    CustomElementConfiguration,
+    create_custom_element, create_custom_element_extending, CustomElement,
 };
 use js_sys::{Array, Object, Reflect};
 use wasm_bindgen::{prelude::*, JsCast};
@@ -212,13 +211,9 @@ fn arguments_preserve_order_and_identity() {
 }
 
 #[wasm_bindgen_test]
-fn explicit_autonomous_configuration_constructs() {
-    let (closure, constructor) = create_custom_element_with_config(
-        |_element, _arguments| Empty,
-        CustomElementConfiguration {
-            element_constructor: html_element_constructor(),
-        },
-    );
+fn extending_html_element_constructs_an_autonomous_element() {
+    let (closure, constructor) =
+        create_custom_element_extending(&html_element_constructor(), |_element, _arguments| Empty);
     let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
@@ -235,7 +230,7 @@ fn explicit_autonomous_configuration_constructs() {
 }
 
 #[wasm_bindgen_test]
-fn configured_paragraph_uses_correct_creation_path() {
+fn extending_paragraph_uses_correct_creation_path() {
     let connections = Rc::new(Cell::new(0));
     let recorded = connections.clone();
     struct ParagraphState(Rc<Cell<u32>>);
@@ -244,11 +239,9 @@ fn configured_paragraph_uses_correct_creation_path() {
             self.0.set(self.0.get() + 1);
         }
     }
-    let (closure, constructor) = create_custom_element_with_config(
+    let (closure, constructor) = create_custom_element_extending(
+        &html_paragraph_element_constructor(),
         move |_element, _arguments| ParagraphState(recorded.clone()),
-        CustomElementConfiguration {
-            element_constructor: html_paragraph_element_constructor(),
-        },
     );
     closure.forget();
     let name = common::names::unique_custom_element_name();
