@@ -1,13 +1,15 @@
+const bridge = Symbol.for("custom-element.bridge");
+
 export function createCustomElement(
   makeStruct,
   attributes,
   elementConstructor = HTMLElement,
 ) {
   class GeneratedCustomElement extends elementConstructor {
-    struct;
+    [bridge];
     constructor(...args) {
       super();
-      this.struct = makeStruct(this, args);
+      this[bridge] = makeStruct(this, args);
     }
 
     static get observedAttributes() {
@@ -15,27 +17,27 @@ export function createCustomElement(
     }
 
     connectedCallback() {
-      this.struct.connectedCallback();
+      this[bridge].connectedCallback();
     }
 
     disconnectedCallback() {
-      this.struct.disconnectedCallback();
+      this[bridge].disconnectedCallback();
     }
 
     adoptedCallback() {
-      this.struct.adoptedCallback();
+      this[bridge].adoptedCallback();
     }
 
     connectedMoveCallback() {
-      this.struct.connectedMoveCallback();
+      this[bridge].connectedMoveCallback();
     }
 
     attributeChangedCallback(...args) {
-      this.struct.attributeChangedCallback(...args);
+      this[bridge].attributeChangedCallback(...args);
     }
 
     handleEvent(event) {
-      this.struct.handleEvent(event);
+      this[bridge].handleEvent(event);
     }
   }
 

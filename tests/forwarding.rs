@@ -2,7 +2,7 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use custom_element::{create_custom_element, Bridge, CustomElement};
+use custom_element::{create_custom_element, CustomElement};
 use js_sys::{Array, Object, Reflect};
 use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_test::*;
@@ -323,70 +323,6 @@ fn native_move_reports_capability_and_preserves_connection() {
     common::browser::assert_no_browser_errors(|| destination.remove());
 }
 
-struct RecordingBridge(Rc<RefCell<Vec<&'static str>>>);
-
-impl CustomElement for RecordingBridge {
-    fn connected_callback(&self) {
-        self.0.borrow_mut().push("connected");
-    }
-    fn disconnected_callback(&self) {
-        self.0.borrow_mut().push("disconnected");
-    }
-    fn adopted_callback(&self) {
-        self.0.borrow_mut().push("adopted");
-    }
-    fn connected_move_callback(&self) {
-        self.0.borrow_mut().push("moved");
-    }
-    fn attribute_changed_callback(&self, _name: &str, _old: Option<String>, _new: Option<String>) {
-        self.0.borrow_mut().push("attribute");
-    }
-    fn handle_event(&self, _event: Event) {
-        self.0.borrow_mut().push("event");
-    }
-}
-
-#[wasm_bindgen_test]
-fn immutable_bridge_construction_paths_forward_all_methods() {
-    let first = Rc::new(RefCell::new(Vec::new()));
-    let second = Rc::new(RefCell::new(Vec::new()));
-    for (bridge, calls) in [
-        (Bridge::new(RecordingBridge(first.clone())), first),
-        (Bridge::from(RecordingBridge(second.clone())), second),
-    ] {
-        let bridge: JsValue = bridge.into();
-        let attribute = Array::new();
-        attribute.push(&JsValue::from_str("observed"));
-        attribute.push(&JsValue::NULL);
-        attribute.push(&JsValue::from_str("value"));
-        let event = Array::new();
-        event.push(Event::new("probe").unwrap().as_ref());
-        for (method, arguments) in [
-            ("connectedCallback", Array::new()),
-            ("disconnectedCallback", Array::new()),
-            ("adoptedCallback", Array::new()),
-            ("connectedMoveCallback", Array::new()),
-            ("attributeChangedCallback", attribute),
-            ("handleEvent", event),
-        ] {
-            common::browser::assert_no_browser_errors(|| {
-                invoke(&bridge, method, &arguments).unwrap()
-            });
-        }
-        assert_eq!(
-            *calls.borrow(),
-            vec![
-                "connected",
-                "disconnected",
-                "adopted",
-                "moved",
-                "attribute",
-                "event"
-            ]
-        );
-    }
-}
-
 #[wasm_bindgen_test]
 fn controlled_bridge_error_reports_one_attempt() {
     let element = create_recorder(Rc::new(move |_element, _call| {}));
@@ -495,4 +431,34 @@ fn component_declares_its_observed_attributes() {
             (watched(), Some("second".to_owned()), None),
         ]
     );
+}
+
+#[wasm_bindgen_test]
+fn a_user_property_named_struct_does_not_replace_the_component() {
+    let connections = Rc::new(RefCell::new(0));
+    let counted = connections.clone();
+    let element = create_recorder(Rc::new(move |_element, call| {
+        if matches!(call, Call::Connected) {
+            *counted.borrow_mut() += 1;
+        }
+    }));
+    assert_eq!(Object::keys(&element).length(), 0);
+    Reflect::set(
+        &element,
+        &JsValue::from_str("struct"),
+        &JsValue::from_str("user data"),
+    )
+    .unwrap();
+    common::browser::assert_no_browser_errors(|| {
+        window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .body()
+            .unwrap()
+            .append_child(&element)
+            .unwrap()
+    });
+    common::browser::assert_no_browser_errors(|| element.remove());
+    assert_eq!(*connections.borrow(), 1);
 }

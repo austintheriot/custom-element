@@ -58,7 +58,7 @@ export function moveBetweenParents(element) {
 }
 
 export function injectBridgeFailure(element) {
-  const bridge = element.struct;
+  const bridge = bridgeOf(element);
   const original = bridge.connectedCallback;
   let attempts = 0;
   let reported = 0;
@@ -100,7 +100,7 @@ export function isFailedElement(element) {
 }
 
 export function connectWithPostEffectFailure(element) {
-  const bridge = element.struct;
+  const bridge = bridgeOf(element);
   const original = bridge.connectedCallback;
   try {
     bridge.connectedCallback = function () {
@@ -112,4 +112,8 @@ export function connectWithPostEffectFailure(element) {
     bridge.connectedCallback = original;
     element.remove();
   }
+}
+
+export function bridgeOf(element) {
+  return element[Symbol.for('custom-element.bridge')];
 }

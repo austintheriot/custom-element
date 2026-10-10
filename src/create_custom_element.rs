@@ -2,7 +2,9 @@ use js_sys::{Array, Function};
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlElement;
 
-use crate::{constructors::html_element_constructor, Bridge, CustomElement, GeneratedConstructor};
+use crate::{
+    bridge::Bridge, constructors::html_element_constructor, CustomElement, GeneratedConstructor,
+};
 
 type MakeStruct = Closure<dyn Fn(JsValue, Array) -> JsValue>;
 

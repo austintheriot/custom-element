@@ -28,6 +28,9 @@ extern "C" {
     #[wasm_bindgen(js_name = connectWithPostEffectFailure)]
     pub fn connect_with_post_effect_failure(element: &HtmlElement);
 
+    #[wasm_bindgen(js_name = bridgeOf)]
+    pub fn bridge_of(element: &HtmlElement) -> JsValue;
+
     #[wasm_bindgen(js_name = injectBridgeFailure)]
     pub fn inject_bridge_failure(element: &HtmlElement) -> JsValue;
 
