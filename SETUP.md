@@ -11,11 +11,13 @@ cargo install cargo-make
 
 The `wasm-bindgen` CLI and test runner must report version 0.2.100. The matrix script checks both versions before tests run.
 
-Install Firefox, Chromium, `geckodriver`, and `chromedriver`. Both drivers must be on `PATH`. Check that each driver supports the installed browser version.
+Install Firefox, Chrome, `geckodriver`, and `chromedriver`. Both drivers must be on `PATH`. Check that each driver supports the installed browser version.
 
-If a browser binary is outside its driver's default search path, create `webdriver.json` in the root directory and each state example directory. Those directories are `examples/counter`, `examples/cell_state`, and `examples/refcell_state`.
+Run wasm tests from inside this repository. The root `.cargo/config.toml` sets the `wasm-bindgen-test-runner` runner. Outside the repository, `cargo test --target wasm32-unknown-unknown` has no runner.
 
-The test runner reads each package's file. The matrix script does not change the files. For Chromium, set `goog:chromeOptions.binary`. For Firefox, set `moz:firefoxOptions.binary`. The repository ignores these machine-specific files.
+If a browser binary is outside its driver's default search path, set `BROWSER_BINARY` to the binary path. The script then writes a `webdriver.json` file in the root directory and in each example directory that tests in a browser. The script deletes those files when it exits. The script stops if one of those files already exists. When `BROWSER_BINARY` is not set, the script writes no files.
+
+The root browser suite reports whether the browser supports native move. When the browser reports `native move capability: unsupported`, the script fails. Set `ALLOW_MISSING_MOVE=1` to accept that result. The script prints which case applied.
 
 Run the native tests and all four browser/profile pairs with:
 
@@ -26,7 +28,7 @@ cargo make test
 Run one browser/profile pair during development with:
 
 ```sh
-bash scripts/test-browser.sh firefox debug
+BROWSER_BINARY=/path/to/firefox bash scripts/test-browser.sh firefox debug
 ```
 
-The focused root browser task remains `cargo make test-wasm`. Install `cargo-watch` if you use the `cargo make watch` task.
+Install `cargo-watch` if you use the `cargo make watch` task.
