@@ -15,6 +15,10 @@
 //! - [`hello_world`](https://github.com/austintheriot/custom-element/tree/main/examples/hello_world) is the most basic web component you can create
 //! - [`counter`](https://github.com/austintheriot/custom-element/tree/main/examples/counter) is the standard
 //! counter example, with attributes as its state.
+//! - [`cell_state`](https://github.com/austintheriot/custom-element/tree/main/examples/cell_state)
+//! stores one value in a `Cell`.
+//! - [`refcell_state`](https://github.com/austintheriot/custom-element/tree/main/examples/refcell_state)
+//! stores compound state in a scoped `RefCell` borrow.
 //! - [`leptos_in_react`](https://github.com/austintheriot/custom-element/tree/main/examples/leptos_in_react)
 //! shows how you can mix Rust and JavaScript in the same codebase, and even mix Rust/JavaScript
 //! frameworks.

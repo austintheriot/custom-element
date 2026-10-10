@@ -45,4 +45,6 @@ that attribute.
 The callbacks use shared `&self` receivers. The component reads its current
 values from attributes instead of keeping Rust state. A nested attribute
 callback sees the latest attribute value without a `RefCell` borrow. The
-example does not cover compound Rust state.
+example does not cover compound Rust state. See the
+[Cell counter](../cell_state) and [scoped RefCell counter](../refcell_state)
+for those strategies.

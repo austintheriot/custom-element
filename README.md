@@ -138,7 +138,9 @@ For captured compound state, use `RefCell`. Copy the data needed for nested
 construction inside a short borrow scope. End that scope before creating
 another element, because its factory can borrow the same captured state.
 
-The [counter example](examples/counter) keeps its state in attributes.
+The runnable examples show [attribute-only state](examples/counter),
+[scalar `Cell` state](examples/cell_state), and
+[scoped `RefCell` state](examples/refcell_state).
 
 Shared callbacks permit synchronous reentry only when application state has
 no conflicting borrow. A live `RefCell` mutable guard conflicts with every
