@@ -232,7 +232,7 @@ fn non_click_events_on_buttons_do_not_change_state() {
     for role in ["increment", "plus", "minus"] {
         let button = counter.button(role);
         button
-            .add_event_listener_with_callback("input", &counter.element.clone().unchecked_into())
+            .add_event_listener_with_event_listener("input", counter.element.unchecked_ref())
             .unwrap();
         button
             .dispatch_event(&Event::new("input").unwrap())
