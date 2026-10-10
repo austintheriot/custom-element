@@ -55,8 +55,14 @@ has_wasm_test_dependency() {
     echo "cargo metadata failed for $1" >&2
     exit 1
   }
-  jq -e '.packages[0].dependencies | any(.name == "wasm-bindgen-test" and .kind == "dev")' \
-    <<<"$metadata" >/dev/null
+  local status=0
+  jq -e 'any(.packages[].dependencies[]; .name == "wasm-bindgen-test" and .kind == "dev")' \
+    <<<"$metadata" >/dev/null || status=$?
+  if ((status > 1)); then
+    echo "jq failed with exit code $status while reading metadata for $1" >&2
+    exit 1
+  fi
+  return "$status"
 }
 
 command -v jq >/dev/null || {
@@ -91,10 +97,10 @@ if [[ -n "${BROWSER_BINARY:-}" ]]; then
   }
   case "$browser" in
     firefox)
-      capabilities="$(printf '{"moz:firefoxOptions": {"binary": "%s"}}' "$BROWSER_BINARY")"
+      capabilities="$(jq -n --arg binary "$BROWSER_BINARY" '{"moz:firefoxOptions": {binary: $binary}}')"
       ;;
     chrome)
-      capabilities="$(printf '{"goog:chromeOptions": {"binary": "%s", "args": ["--no-sandbox"]}}' "$BROWSER_BINARY")"
+      capabilities="$(jq -n --arg binary "$BROWSER_BINARY" '{"goog:chromeOptions": {binary: $binary, args: ["--no-sandbox"]}}')"
       ;;
   esac
   for manifest in "${manifests[@]}"; do
