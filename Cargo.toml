@@ -14,21 +14,19 @@ exclude = ["docs/", "scripts/", ".github/", ".cargo-husky/"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-web-sys = { version = "0.3.68", features = [
+web-sys = { version = "0.3.106", features = [
 	"Window",
 	"Event",
 	"Document",
 	"HtmlElement",
 ] }
-js-sys = "0.3.68"
-wasm-bindgen = "0.2.100"
+js-sys = "0.3.106"
+wasm-bindgen = "0.2.129"
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3.42"
-wasm-bindgen-futures = "0.4.50"
-rand = { version = "0.8.5" }
-getrandom = { version = "0.2.14", features = ["js"] }
-web-sys = { version = "0.3.68", features = [
+wasm-bindgen-test = "0.3.79"
+wasm-bindgen-futures = "0.4.79"
+web-sys = { version = "0.3.106", features = [
 	"CustomElementRegistry",
 	"ElementDefinitionOptions",
 	"DomImplementation",

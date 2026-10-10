@@ -22,10 +22,10 @@ rustup target add wasm32-unknown-unknown
 
 Install wasm-bindgen-cli (for generating the JS bindings to use the .wasm files in the browser)
 
-Note: must match version of `wasm-bindgen` installed locally.
+Note: must match the version of `wasm-bindgen` in `Cargo.lock`. Run this command from the repository root:
 
 ```sh
-cargo install wasm-bindgen-cli --vers "0.2.100"
+cargo install wasm-bindgen-cli --version "$(scripts/wasm-bindgen-version.sh)" --locked
 ```
 
 Install Firefox's `geckodriver` to your $PATH (for running wasm tests in headless mode): https://github.com/mozilla/geckodriver/releases

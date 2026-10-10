@@ -107,7 +107,7 @@ fn default_callbacks_accept_every_invocation() {
         let (closure, constructor) =
             create_custom_element(|_element, _arguments| Empty, vec!["observed".to_owned()]);
         closure.forget();
-        let name = common::names::get_random_custom_element_name();
+        let name = common::names::unique_custom_element_name();
         common::browser::assert_no_browser_errors(|| {
             window()
                 .unwrap()
@@ -266,7 +266,7 @@ fn native_move_without_override_reconnects() {
         vec![],
     );
     closure.forget();
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     window()
         .unwrap()
         .custom_elements()

@@ -10,14 +10,19 @@ profile="${2:?Specify debug or release}"
 unset NO_HEADLESS SAFARIDRIVER SAFARIDRIVER_REMOTE MSEDGEDRIVER MSEDGEDRIVER_REMOTE
 unset CHROMEDRIVER_REMOTE GECKODRIVER_REMOTE
 
-binding_version="$(wasm-bindgen --version)"
-runner_version="$(wasm-bindgen-test-runner --version)"
-[[ "$binding_version" == "wasm-bindgen 0.2.100"* ]] || {
-  echo "Expected wasm-bindgen 0.2.100, found: $binding_version" >&2
+command -v jq >/dev/null || {
+  echo "jq is required to read Cargo metadata" >&2
   exit 1
 }
-[[ "$runner_version" == "wasm-bindgen-test-runner 0.2.100"* ]] || {
-  echo "Expected wasm-bindgen-test-runner 0.2.100, found: $runner_version" >&2
+expected_version="$(scripts/wasm-bindgen-version.sh)"
+binding_version="$(wasm-bindgen --version)"
+runner_version="$(wasm-bindgen-test-runner --version)"
+[[ "$binding_version" == "wasm-bindgen $expected_version"* ]] || {
+  echo "Expected wasm-bindgen $expected_version from Cargo.lock, found: $binding_version" >&2
+  exit 1
+}
+[[ "$runner_version" == "wasm-bindgen-test-runner $expected_version"* ]] || {
+  echo "Expected wasm-bindgen-test-runner $expected_version from Cargo.lock, found: $runner_version" >&2
   exit 1
 }
 
@@ -65,10 +70,6 @@ has_wasm_test_dependency() {
   return "$status"
 }
 
-command -v jq >/dev/null || {
-  echo "jq is required to select example crates" >&2
-  exit 1
-}
 
 manifests=(Cargo.toml)
 for example_manifest in examples/*/Cargo.toml; do

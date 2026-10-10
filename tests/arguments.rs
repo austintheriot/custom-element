@@ -40,7 +40,7 @@ pub mod autonomous_custom_elements {
             closure.forget();
 
             // define custom element
-            let name = names::get_random_custom_element_name();
+            let name = names::unique_custom_element_name();
             window
                 .custom_elements()
                 .define(&name, &constructor)
@@ -99,7 +99,7 @@ pub mod customized_built_in_components {
             closure.forget();
 
             // define custom element
-            let name = names::get_random_custom_element_name();
+            let name = names::unique_custom_element_name();
             let mut options = ElementDefinitionOptions::new();
             options.extends("p");
             window

@@ -1,17 +1,15 @@
 # Setup
 
-Install Rust with [rustup](https://www.rust-lang.org/tools/install). Then install the WebAssembly target and browser test tools:
+Install Rust with [rustup](https://www.rust-lang.org/tools/install) and `jq`. Then install the WebAssembly target and browser test tools:
 
 ```sh
 rustup update
 rustup target add wasm32-unknown-unknown
-cargo install wasm-bindgen-cli --version 0.2.100 --locked
+cargo install wasm-bindgen-cli --version "$(scripts/wasm-bindgen-version.sh)" --locked
 cargo install cargo-make
 ```
 
-Install `jq`. The browser test script uses `jq` to select example crates.
-
-The `wasm-bindgen` CLI and test runner must report version 0.2.100. The matrix script checks both versions before tests run.
+The `wasm-bindgen` CLI and test runner must report the `wasm-bindgen` version in `Cargo.lock`. `scripts/wasm-bindgen-version.sh` prints that version. The matrix script checks both tools before tests run.
 
 Install Firefox, Chrome, `geckodriver`, and `chromedriver`. Both drivers must be on `PATH`. Check that each driver supports the installed browser version.
 
