@@ -8,6 +8,7 @@ categories = ["web-programming", "wasm", "gui"]
 description = "A CustomElement trait for implementing custom elements (web components) in Rust"
 repository = "https://github.com/austintheriot/custom-element"
 readme = "README.md"
+exclude = ["docs/", "scripts/", ".github/", ".cargo-husky/"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
