@@ -1,9 +1,6 @@
 use std::{ops::Deref, time::Duration};
 
-use leptos::{
-    leptos_dom::helpers::IntervalHandle, set_interval_with_handle, RwSignal, SignalUpdate,
-    SignalWith,
-};
+use leptos::prelude::{set_interval_with_handle, IntervalHandle, RwSignal, Update, With};
 use wasm_bindgen::prelude::*;
 
 #[derive(Debug, Default)]

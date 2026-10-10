@@ -1,11 +1,10 @@
 [config]
 skip_core_tasks = true
+default_to_workspace = false
 
 [env]
-CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
-# path is relative to the crate itself, not the root directory
-PATH_TO_TARGET_DIR = "../../target/wasm32-unknown-unknown"
-PATH_TO_OUTPUT_DIR = "../../packages/react-app/src/compiled"
+PATH_TO_TARGET_DIR = "target/wasm32-unknown-unknown"
+PATH_TO_OUTPUT_DIR = "packages/react-app/src/compiled"
 
 [tasks.clean]
 command = "cargo"
@@ -86,8 +85,8 @@ run_task = { name = ["opt-leptos-app"], parallel = true }
 
 [tasks.watch-dev]
 command = "cargo"
-args = ["watch", "-x", "check", "-s", "cargo make build-dev"]
+args = ["watch", "--no-vcs-ignores", "-w", "crates", "-w", "../../src", "-x", "check", "-s", "cargo make build-dev"]
 
 [tasks.watch-release]
 command = "cargo"
-args = ["watch", "-x", "check", "-s", "cargo make build-release"]
+args = ["watch", "--no-vcs-ignores", "-w", "crates", "-w", "../../src", "-x", "check", "-s", "cargo make build-release"]

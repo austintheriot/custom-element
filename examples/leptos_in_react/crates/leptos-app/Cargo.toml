@@ -7,13 +7,13 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = { version = "0.6.10", features = ["csr"] }
+leptos = { version = "0.8.22", features = ["csr"] }
 js-sys = "0.3.106"
 web-sys = { version = "0.3.106", features = ["Window", "CustomElementRegistry"] }
 wasm-bindgen = "0.2.129"
 custom-element = { path = "../../../../" }
 
 # logging
-log = "0.4"
+log = "0.4.34"
 wasm-logger = "0.2.0"
 console_error_panic_hook = "0.1.7"
