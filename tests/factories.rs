@@ -30,7 +30,7 @@ impl CustomElement for Empty {}
 
 #[wasm_bindgen_test]
 fn factory_can_create_another_registered_element_before_returning() {
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     let calls = Rc::new(Cell::new(0));
     let instances = Rc::new(RefCell::new(Vec::<JsValue>::new()));
     let recorded_calls = calls.clone();
@@ -88,7 +88,7 @@ impl CustomElement for ConnectionCounter {
 
 #[wasm_bindgen_test]
 fn fresh_construction_inside_a_factory_builds_a_complete_element() {
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     let connections = Rc::new(Cell::new(0));
     let calls = Rc::new(Cell::new(0));
     let nested = Rc::new(RefCell::new(None));
@@ -140,7 +140,7 @@ fn fresh_construction_inside_a_factory_builds_a_complete_element() {
 fn recursive_factory_releases_state_before_nested_construction() {
     let state = Rc::new(RefCell::new(Vec::new()));
     let recorded = state.clone();
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     let nested_name = name.clone();
     let (closure, constructor) = create_custom_element(
         move |_element, _arguments| {
@@ -192,7 +192,7 @@ fn arguments_preserve_order_and_identity() {
         },
         vec![],
     );
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
             .unwrap()
@@ -232,7 +232,7 @@ fn explicit_autonomous_configuration_constructs() {
             element_constructor: &HTML_ELEMENT_CONSTRUCTOR,
         },
     );
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
             .unwrap()
@@ -265,7 +265,7 @@ fn configured_paragraph_uses_correct_creation_path() {
         },
     );
     closure.forget();
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     let options = ElementDefinitionOptions::new();
     options.set_extends("p");
     window()
@@ -310,7 +310,7 @@ async fn factory_remains_callable_across_turns() {
         },
         vec![],
     );
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
             .unwrap()
@@ -341,7 +341,7 @@ fn dropping_factory_fails_visibly() {
         },
         vec![],
     );
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
             .unwrap()
@@ -373,7 +373,7 @@ fn factory_state_is_local_to_registration() {
             },
             vec![],
         );
-        let name = common::names::get_random_custom_element_name();
+        let name = common::names::unique_custom_element_name();
         common::browser::assert_no_browser_errors(|| {
             window()
                 .unwrap()
@@ -427,7 +427,7 @@ fn cloned_element_has_separate_component() {
         vec![],
     );
     closure.forget();
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
             .unwrap()
@@ -474,7 +474,7 @@ impl CustomElement for UpgradeRecorder {
 #[wasm_bindgen_test]
 fn upgrade_initializes_bridge_before_callbacks() {
     let document = window().unwrap().document().unwrap();
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     let element =
         common::browser::assert_no_browser_errors(|| document.create_element(&name).unwrap());
     common::browser::assert_no_browser_errors(|| {
@@ -506,7 +506,7 @@ fn upgrade_initializes_bridge_before_callbacks() {
 
 #[wasm_bindgen_test]
 fn upgrade_recursion_preserves_browser_restriction() {
-    let baseline_name = common::names::get_random_custom_element_name();
+    let baseline_name = common::names::unique_custom_element_name();
     let baseline = plain_upgrade_recursion(&baseline_name);
     let baseline_count = Reflect::get(&baseline, &JsValue::from_str("bodyCount"))
         .unwrap()
@@ -525,7 +525,7 @@ fn upgrade_recursion_preserves_browser_restriction() {
         Some(true)
     );
 
-    let name = common::names::get_random_custom_element_name();
+    let name = common::names::unique_custom_element_name();
     let document = window().unwrap().document().unwrap();
     let element = document.create_element(&name).unwrap();
     document.body().unwrap().append_child(&element).unwrap();

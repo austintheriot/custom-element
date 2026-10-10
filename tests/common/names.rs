@@ -1,18 +1,14 @@
-use rand::{distributions::Alphanumeric, Rng};
+use std::cell::Cell;
 
-fn get_random_letter_string() -> String {
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .filter(|character| character.is_ascii_alphabetic())
-        .map(|character| character.to_ascii_lowercase())
-        .take(10)
-        .map(char::from)
-        .collect()
+thread_local! {
+    static NEXT_ELEMENT_NUMBER: Cell<u32> = const { Cell::new(0) };
 }
 
-pub fn get_random_custom_element_name() -> String {
-    let random_string_a = get_random_letter_string();
-    let random_string_b = get_random_letter_string();
-    let random_string_c = get_random_letter_string();
-    format!("{random_string_a}-{random_string_b}-{random_string_c}")
+pub fn unique_custom_element_name() -> String {
+    let number = NEXT_ELEMENT_NUMBER.with(|next| {
+        let current = next.get();
+        next.set(current + 1);
+        current
+    });
+    format!("test-element-{number}")
 }

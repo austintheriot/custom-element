@@ -23,7 +23,7 @@ pub mod autonomous_custom_elements {
     fn should_create_instance_from_constructor() {
         let window = window().unwrap();
         let constructor = constructors::create_autonomous_custom_element_constructor();
-        let name = names::get_random_custom_element_name();
+        let name = names::unique_custom_element_name();
         window
             .custom_elements()
             .define(&name, &constructor)
@@ -39,7 +39,7 @@ pub mod autonomous_custom_elements {
         let window = window().unwrap();
         let constructor = constructors::create_autonomous_custom_element_constructor();
         let document = window.document().unwrap();
-        let name = names::get_random_custom_element_name();
+        let name = names::unique_custom_element_name();
         let mut options = ElementDefinitionOptions::new();
         options.extends("p");
         window
@@ -79,7 +79,7 @@ pub mod customized_built_in_custom_elements {
     fn should_create_instance_from_constructor() {
         let window = window().unwrap();
         let constructor = constructors::create_customized_built_in_element_constructor();
-        let name = names::get_random_custom_element_name();
+        let name = names::unique_custom_element_name();
         let mut options = ElementDefinitionOptions::new();
         options.extends("p");
         window
@@ -113,7 +113,7 @@ pub mod customized_built_in_custom_elements {
             },
         );
         closure.forget();
-        let name = names::get_random_custom_element_name();
+        let name = names::unique_custom_element_name();
         let mut options = ElementDefinitionOptions::new();
         options.extends("p");
         window

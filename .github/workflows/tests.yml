@@ -16,7 +16,7 @@ jobs:
   native-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Update Rust toolchain
         run: |
           rustup update
@@ -38,11 +38,11 @@ jobs:
         browser: [firefox, chrome]
         profile: [debug, release]
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install Rust browser tools
         run: |
           rustup target add wasm32-unknown-unknown
-          cargo install wasm-bindgen-cli --version 0.2.100 --locked
+          cargo install wasm-bindgen-cli --version "$(scripts/wasm-bindgen-version.sh)" --locked
       - id: chrome
         if: matrix.browser == 'chrome'
         uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0

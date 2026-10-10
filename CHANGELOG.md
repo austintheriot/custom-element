@@ -23,6 +23,9 @@ All notable changes to this crate are in this file. The format follows
   disconnect and reconnect for an `Element.moveBefore()` move. A component
   that relied on the default lost both callbacks on such a move. Override
   `connected_move_callback` to keep state across a move.
+- The crate requires `wasm-bindgen` 0.2.129 and `js-sys` and `web-sys`
+  0.3.106 or later. Install the `wasm-bindgen` CLI version that your
+  `Cargo.lock` resolves.
 
 ### Migrating a mutable capture
 
