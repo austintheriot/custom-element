@@ -49,16 +49,31 @@ echo "$binding_version"
 echo "$runner_version"
 "$driver_path" --version
 
+has_wasm_test_dependency() {
+  awk '
+    /^[[:space:]]*\[/ {
+      header = $0
+      sub(/[[:space:]]*#.*$/, "", header)
+      gsub(/^[[:space:]]*\[[[:space:]]*|[[:space:]]*\][[:space:]]*$/, "", header)
+      in_dev_dependencies = (header ~ /(^|\.)dev-dependencies$/)
+      if (header ~ /(^|\.)dev-dependencies\.wasm-bindgen-test$/) found = 1
+      next
+    }
+    in_dev_dependencies && /^[[:space:]]*wasm-bindgen-test([[:space:]]*\.[^=]*)?[[:space:]]*=/ { found = 1 }
+    END { exit !found }
+  ' "$1"
+}
+
 manifests=(Cargo.toml)
 for example_manifest in examples/*/Cargo.toml; do
-  if awk '
-    /^\[/ { in_dev_dependencies = ($0 == "[dev-dependencies]") }
-    in_dev_dependencies && /^wasm-bindgen-test[[:space:]]*=/ { found = 1 }
-    END { exit !found }
-  ' "$example_manifest"; then
+  if has_wasm_test_dependency "$example_manifest"; then
     manifests+=("$example_manifest")
   fi
 done
+if ((${#manifests[@]} < 2)); then
+  echo "No example manifest lists wasm-bindgen-test under dev-dependencies" >&2
+  exit 1
+fi
 
 webdriver_files=()
 cleanup() {
