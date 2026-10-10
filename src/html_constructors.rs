@@ -2,7 +2,7 @@
 /// built-in custom elements.
 ///
 /// Each function returns the browser global of the same name, for example
-/// [`html_paragraph_element_constructor`] returns `window.HTMLParagraphElement`.
+/// [`html_paragraph_element_constructor`](constructors::html_paragraph_element_constructor) returns `window.HTMLParagraphElement`.
 /// A function returns `undefined` cast to [`js_sys::Function`] when the
 /// browser does not define that global.
 pub mod constructors {
