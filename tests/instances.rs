@@ -40,8 +40,8 @@ pub mod autonomous_custom_elements {
         let constructor = constructors::create_autonomous_custom_element_constructor();
         let document = window.document().unwrap();
         let name = names::unique_custom_element_name();
-        let mut options = ElementDefinitionOptions::new();
-        options.extends("p");
+        let options = ElementDefinitionOptions::new();
+        options.set_extends("p");
         window
             .custom_elements()
             .define(&name, &constructor)
@@ -56,7 +56,7 @@ pub mod autonomous_custom_elements {
 pub mod customized_built_in_custom_elements {
     use crate::common::{constructors, names};
     use custom_element::{
-        constructors::HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR, create_custom_element_with_config,
+        constructors::html_paragraph_element_constructor, create_custom_element_with_config,
         CustomElement, CustomElementConfiguration,
     };
     use js_sys::{Array, Reflect};
@@ -80,8 +80,8 @@ pub mod customized_built_in_custom_elements {
         let window = window().unwrap();
         let constructor = constructors::create_customized_built_in_element_constructor();
         let name = names::unique_custom_element_name();
-        let mut options = ElementDefinitionOptions::new();
-        options.extends("p");
+        let options = ElementDefinitionOptions::new();
+        options.set_extends("p");
         window
             .custom_elements()
             .define_with_options(&name, &constructor, &options)
@@ -109,13 +109,13 @@ pub mod customized_built_in_custom_elements {
             },
             vec![],
             CustomElementConfiguration {
-                element_constructor: &HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
+                element_constructor: html_paragraph_element_constructor(),
             },
         );
         closure.forget();
         let name = names::unique_custom_element_name();
-        let mut options = ElementDefinitionOptions::new();
-        options.extends("p");
+        let options = ElementDefinitionOptions::new();
+        options.set_extends("p");
         window
             .custom_elements()
             .define_with_options(&name, &constructor, &options)

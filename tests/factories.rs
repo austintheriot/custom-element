@@ -6,7 +6,7 @@ use std::{
 };
 
 use custom_element::{
-    constructors::{HTML_ELEMENT_CONSTRUCTOR, HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR},
+    constructors::{html_element_constructor, html_paragraph_element_constructor},
     create_custom_element, create_custom_element_with_config, CustomElement,
     CustomElementConfiguration,
 };
@@ -229,7 +229,7 @@ fn explicit_autonomous_configuration_constructs() {
         |_element, _arguments| Empty,
         vec![],
         CustomElementConfiguration {
-            element_constructor: &HTML_ELEMENT_CONSTRUCTOR,
+            element_constructor: html_element_constructor(),
         },
     );
     let name = common::names::unique_custom_element_name();
@@ -261,7 +261,7 @@ fn configured_paragraph_uses_correct_creation_path() {
         move |_element, _arguments| ParagraphState(recorded.clone()),
         vec![],
         CustomElementConfiguration {
-            element_constructor: &HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
+            element_constructor: html_paragraph_element_constructor(),
         },
     );
     closure.forget();

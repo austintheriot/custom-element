@@ -26,6 +26,14 @@ All notable changes to this crate are in this file. The format follows
 - The crate requires `wasm-bindgen` 0.2.129 and `js-sys` and `web-sys`
   0.3.106 or later. Install the `wasm-bindgen` CLI version that your
   `Cargo.lock` resolves.
+- The `constructors` module exposes functions instead of statics. Replace
+  `&HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR` with
+  `html_paragraph_element_constructor()`, and the same for every other
+  element. The statics used a `wasm-bindgen` form that is deprecated. The
+  `HTMLDocument` entry is gone, because a document is not an element.
+- `CustomElementConfiguration` owns its `element_constructor` as a
+  `Function` instead of borrowing it, so the struct no longer implements
+  `Copy` and has no lifetime parameter.
 
 ### Migrating a mutable capture
 

@@ -63,7 +63,7 @@ pub mod customized_built_in_components {
     use std::{cell::RefCell, rc::Rc};
 
     use custom_element::{
-        constructors::HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR, create_custom_element_with_config,
+        constructors::html_paragraph_element_constructor, create_custom_element_with_config,
         CustomElementConfiguration,
     };
 
@@ -93,15 +93,15 @@ pub mod customized_built_in_components {
                 },
                 vec![String::from("count")],
                 CustomElementConfiguration {
-                    element_constructor: &HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
+                    element_constructor: html_paragraph_element_constructor(),
                 },
             );
             closure.forget();
 
             // define custom element
             let name = names::unique_custom_element_name();
-            let mut options = ElementDefinitionOptions::new();
-            options.extends("p");
+            let options = ElementDefinitionOptions::new();
+            options.set_extends("p");
             window
                 .custom_elements()
                 .define_with_options(&name, &constructor, &options)
