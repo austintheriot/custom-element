@@ -10,9 +10,9 @@ use crate::State;
 pub struct CustomElementApp;
 
 impl CustomElement for CustomElementApp {
-    fn connected_callback(&mut self) {}
+    fn connected_callback(&self) {}
 
-    fn disconnected_callback(&mut self) {}
+    fn disconnected_callback(&self) {}
 }
 
 #[wasm_bindgen(js_name = getAppTagName)]
