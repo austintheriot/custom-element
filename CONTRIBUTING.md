@@ -11,3 +11,7 @@ See all available scripts at [./Makefile.toml](./Makefile.toml). These scripts a
 ```sh
 cargo make test
 ```
+
+## Browser tests
+
+The file [./scripts/test-browser.sh](./scripts/test-browser.sh) holds the browser test runner. The `cargo make` test tasks call that script. Run the script directly to test one browser and profile. See [./SETUP.md](./SETUP.md) for the options.

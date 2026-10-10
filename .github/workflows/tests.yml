@@ -2,39 +2,77 @@ name: Tests
 
 on:
   push:
+    branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
-  build-and-test:
+  native-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Install cargo-hack
-        uses: taiki-e/install-action@cargo-hack
-
-      - name: Install geckodriver
-        run: sudo apt-get install -y firefox
-
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Update Rust toolchain
         run: |
           rustup update
           rustup component add clippy
           rustup install stable
-          rustup target add wasm32-unknown-unknown
-
-      - name: Install cargo tooling
-        run: |
-          cargo install wasm-bindgen-cli --vers "0.2.100"
-          cargo install cargo-make
-
       - name: Print versions
         run: |
           cargo --version --verbose
           rustc --version
           cargo clippy --version
-          cargo make --version
+      - name: Run native tests
+        run: cargo test --locked
 
-      - name: Test
+  browser-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, chrome]
+        profile: [debug, release]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Install Rust browser tools
         run: |
-          cargo make test
+          rustup target add wasm32-unknown-unknown
+          cargo install wasm-bindgen-cli --version 0.2.100 --locked
+      - id: chrome
+        if: matrix.browser == 'chrome'
+        uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+      - id: firefox
+        if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-firefox@0bc507ddf224827e3b1af68e014d5e42ab93e795 # v1.7.2
+        with:
+          firefox-version: latest
+      - if: matrix.browser == 'firefox'
+        uses: browser-actions/setup-geckodriver@fac5b0424c584257f32cf12c5eb4ba86014c34f8 # latest
+      - name: Run browser tests
+        env:
+          BROWSER_BINARY: ${{ steps.chrome.outputs.chrome-path || steps.firefox.outputs.firefox-path }}
+        run: |
+          "$BROWSER_BINARY" --version
+          bash scripts/test-browser.sh "${{ matrix.browser }}" "${{ matrix.profile }}"
+
+  build-and-test:
+    needs: [native-tests, browser-tests]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every test job to succeed
+        env:
+          NATIVE_RESULT: ${{ needs.native-tests.result }}
+          BROWSER_RESULT: ${{ needs.browser-tests.result }}
+        run: |
+          echo "native-tests: $NATIVE_RESULT"
+          echo "browser-tests: $BROWSER_RESULT"
+          [[ "$NATIVE_RESULT" == success && "$BROWSER_RESULT" == success ]]
