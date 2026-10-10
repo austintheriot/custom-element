@@ -1,5 +1,9 @@
 # Leptos in React
 
+The component implements shared `CustomElement` callbacks. Its factory
+creates a separate component for each browser element. Keep the returned
+factory closure alive while the browser can create those elements.
+
 ## Set up
 
 Install rust using [rustup](https://www.rust-lang.org/tools/install)
