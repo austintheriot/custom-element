@@ -13,8 +13,7 @@ pub(crate) struct CellCounter {
 }
 
 impl CellCounter {
-    pub(crate) fn new(element: JsValue, _args: Array) -> Self {
-        let element: HtmlElement = element.into();
+    pub(crate) fn new(element: HtmlElement, _args: Array) -> Self {
         let shadow = element
             .attach_shadow(&ShadowRootInit::new(ShadowRootMode::Open))
             .unwrap();

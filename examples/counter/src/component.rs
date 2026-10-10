@@ -71,8 +71,7 @@ impl Counter {
     pub const COUNT_ATTR_NAME: &'static str = "count";
     pub const STEP_ATTR_NAME: &'static str = "step";
 
-    pub(crate) fn new(instance: JsValue, _args: Array) -> Self {
-        let instance: HtmlElement = instance.into();
+    pub(crate) fn new(instance: HtmlElement, _args: Array) -> Self {
         let shadow_root_init = ShadowRootInit::new(ShadowRootMode::Open);
         let shadow_root = instance.attach_shadow(&shadow_root_init).unwrap();
         let document = web_sys::window().unwrap().document().unwrap();

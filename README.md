@@ -40,7 +40,7 @@ before and after snippet.
 All six `CustomElement` callbacks now take `&self`. Use interior mutability
 when a callback changes Rust-owned state. A component can also keep its
 state in element attributes. The factory passed to
-`create_custom_element` now implements `Fn(JsValue, Array) -> Component`.
+`create_custom_element` now implements `Fn(HtmlElement, Array) -> Component`.
 It can capture shared configuration, but each call must create a component
 for the new element. Keep the returned closure alive while the registered
 constructor can create elements.
@@ -102,7 +102,7 @@ impl CustomElement for Greeting {}
 
 let shared_text = Rc::new(String::from("Hello"));
 let (closure, constructor) = create_custom_element(
-    move |_element: JsValue, _args: Array| Greeting {
+    move |_element: HtmlElement, _args: Array| Greeting {
         text: Rc::clone(&shared_text),
     },
     vec![],

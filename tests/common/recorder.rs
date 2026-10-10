@@ -61,7 +61,7 @@ pub fn create_recorder(hook: Hook) -> HtmlElement {
     let name = super::names::unique_custom_element_name();
     let (closure, constructor) = create_custom_element(
         move |element, _arguments| Recorder {
-            element: element.into(),
+            element,
             hook: hook.clone(),
         },
         vec!["observed".to_owned()],
