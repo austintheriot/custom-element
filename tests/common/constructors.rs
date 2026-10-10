@@ -1,5 +1,5 @@
 use custom_element::{
-    constructors::HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR, create_custom_element,
+    constructors::html_paragraph_element_constructor, create_custom_element,
     create_custom_element_with_config, CustomElementConfiguration, GeneratedConstructor,
 };
 
@@ -19,7 +19,7 @@ pub fn create_customized_built_in_element_constructor() -> GeneratedConstructor 
         |_element_instance, _args| MockCustomElement,
         vec![String::from("count")],
         CustomElementConfiguration {
-            element_constructor: &HTML_PARAGRAPH_ELEMENT_CONSTRUCTOR,
+            element_constructor: html_paragraph_element_constructor(),
         },
     );
     closure.forget();

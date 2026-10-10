@@ -1,7 +1,7 @@
 use js_sys::{Array, Function};
 use wasm_bindgen::prelude::*;
 
-use crate::{constructors::HTML_ELEMENT_CONSTRUCTOR, Bridge, CustomElement, GeneratedConstructor};
+use crate::{constructors::html_element_constructor, Bridge, CustomElement, GeneratedConstructor};
 
 type MakeStruct = Closure<dyn Fn(JsValue, Array) -> JsValue>;
 
@@ -19,16 +19,16 @@ extern "C" {
 /// Allows specifying details about how your custom element
 /// should be created. Currently, this is limited to specifying
 /// which constructor function your custom element should inherit from.
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub struct CustomElementConfiguration<'a> {
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct CustomElementConfiguration {
     /// Which constructor your custom element should inherit from
-    pub element_constructor: &'a Function,
+    pub element_constructor: Function,
 }
 
-impl Default for CustomElementConfiguration<'_> {
+impl Default for CustomElementConfiguration {
     fn default() -> Self {
         Self {
-            element_constructor: &HTML_ELEMENT_CONSTRUCTOR,
+            element_constructor: html_element_constructor(),
         }
     }
 }
@@ -120,6 +120,6 @@ pub fn create_custom_element_with_config<
         let bridge: Bridge = factory(element, args).into();
         bridge.into()
     });
-    let class = _create_custom_element(&closure, attributes, config.element_constructor);
+    let class = _create_custom_element(&closure, attributes, &config.element_constructor);
     (closure, GeneratedConstructor(class))
 }
