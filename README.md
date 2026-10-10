@@ -1,8 +1,8 @@
 # custom-element
 
 [![build](https://img.shields.io/github/actions/workflow/status/austintheriot/custom-element/tests.yml?label=tests)](https://github.com/austintheriot/custom-element/actions)
-[![crates.io](https://img.shields.io/crates/v/custom_element.svg)](https://crates.io/crates/custom_element)
-[![docs.rs](https://img.shields.io/docsrs/custom-element)](https://docs.rs/custom_element)
+[![crates.io](https://img.shields.io/crates/v/custom-element.svg)](https://crates.io/crates/custom-element)
+[![docs.rs](https://img.shields.io/docsrs/custom-element)](https://docs.rs/custom-element)
 
 ## Overview
 
@@ -16,7 +16,7 @@ For us, this means that we can write HTML elements that run in the browser using
 
 ### The Problem
 
-Extending a JS class from Rust/Wasm is not currently supported by `wasm-bindgen`: https://github.com/rustwasm/wasm-bindgen/issues/210, https://github.com/rustwasm/wasm-bindgen/issues/210. This functionality, however is essential for creating a custom element on the web, since custom elements [must inherit from `HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/Web_Components/Using_custom_elements#implementing_a_custom_element) (or some other valid subclass of HTMLElement).
+Extending a JS class from Rust/Wasm is not currently supported by `wasm-bindgen`: https://github.com/wasm-bindgen/wasm-bindgen/issues/210. This functionality, however is essential for creating a custom element on the web, since custom elements [must inherit from `HTMLElement`](https://developer.mozilla.org/en-US/docs/Web/API/Web_Components/Using_custom_elements#implementing_a_custom_element) (or some other valid subclass of HTMLElement).
 
 ### The solution
 
@@ -30,7 +30,51 @@ This crates provide the JavaScript shim necessary for extending an arbitrary sub
 
 - Contains both simple examples for copying into your own project, and also advanced examples showing how to use this library to wrap Leptos components (for example) and render them from JavaScript/React
 
-- Less opinionated approach to creating custom elements. This library gives you the JavaScript constructor for the wrapper class around your struct, and you decide what to do with it.
+- Less opinionated approach to creating custom elements. This library gives you the JavaScript constructor for the wrapper class around your struct, and you decide what to do with it. You can pass it to `window.customElements` or to a scoped `CustomElementRegistry`.
+
+- Forwards every lifecycle callback, including `connectedMoveCallback` for `Element.moveBefore()` and `handleEvent` for using the element as an event listener.
+
+- Callbacks take `&self`, so a callback can trigger another callback on the same element without a `wasm-bindgen` borrow error.
+
+### Customized built-in elements
+
+Pass a constructor from `custom_element::constructors` to
+`create_custom_element_extending`, then define the element with the
+matching `extends` option:
+
+```rust,no_run
+use custom_element::{
+    constructors::html_paragraph_element_constructor, create_custom_element_extending,
+    CustomElement,
+};
+use web_sys::{window, ElementDefinitionOptions, HtmlElement};
+
+struct Highlight { element: HtmlElement }
+impl CustomElement for Highlight {}
+
+let (closure, constructor) = create_custom_element_extending(
+    &html_paragraph_element_constructor(),
+    |element, _arguments| Highlight { element },
+);
+closure.forget();
+
+let options = ElementDefinitionOptions::new();
+options.set_extends("p");
+window()
+    .unwrap()
+    .custom_elements()
+    .define_with_options("highlight-paragraph", &constructor, &options)
+    .unwrap();
+```
+
+Use it in markup as `<p is="highlight-paragraph">`. Two limits apply:
+
+- Safari does not support customized built-in elements, and WebKit does
+  not plan to add them ([WebKit bug 182671](https://bugs.webkit.org/show_bug.cgi?id=182671)).
+  In Safari, the element stays a plain `<p>` and no Rust code runs.
+- A customized built-in element cannot call `attachInternals()`, so it
+  cannot be form-associated or use `ElementInternals`. Use an autonomous
+  element when you need either.
 
 ### Migrating to 0.2.0
 
@@ -94,8 +138,8 @@ consume its capture, because the browser calls the factory for every element:
 ```rust,no_run
 use std::rc::Rc;
 use js_sys::Array;
-use wasm_bindgen::JsValue;
 use custom_element::{create_custom_element, CustomElement};
+use web_sys::HtmlElement;
 
 struct Greeting { text: Rc<String> }
 impl CustomElement for Greeting {}
@@ -151,7 +195,7 @@ value. Dropping a scope-local reference to `self` does not release a borrow
 held by an exported wrapper.
 
 The shared receiver removes the nested-call error that
-[wasm-bindgen issue #1578](https://github.com/rustwasm/wasm-bindgen/issues/1578)
+[wasm-bindgen issue #1578](https://github.com/wasm-bindgen/wasm-bindgen/issues/1578)
 caused for mixed `&mut self` and `&self` calls.
 
 Browser custom-element upgrade rules also apply independently of Rust
@@ -164,4 +208,6 @@ application state permits reentry.
 ## Other libraries you may be interested in
 
 - [custom-elements](https://github.com/gbj/custom-elements) - the library that inspired this one
-- [webcomponents](https://github.com/richardanaya/webcomponent) - a different implementation approach that doesn't use `wasm-bindgen`
+- [dioxus-web-component](https://github.com/ilaborie/dioxus-web-component) - exposes Dioxus components as custom elements, with property support
+- [leptos-webcomponent](https://github.com/Samujalphukan228/wc-bridge) - exposes Leptos components as custom elements
+- [webcomponent](https://github.com/richardanaya/webcomponent) - a different implementation approach that doesn't use `wasm-bindgen` (last release 2021)
