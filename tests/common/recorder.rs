@@ -25,6 +25,10 @@ struct Recorder {
 }
 
 impl CustomElement for Recorder {
+    fn observed_attributes() -> &'static [&'static str] {
+        &["observed"]
+    }
+
     fn connected_callback(&self) {
         (self.hook)(&self.element, Call::Connected);
     }
@@ -59,13 +63,10 @@ impl CustomElement for Recorder {
 
 pub fn create_recorder(hook: Hook) -> HtmlElement {
     let name = super::names::unique_custom_element_name();
-    let (closure, constructor) = create_custom_element(
-        move |element, _arguments| Recorder {
-            element,
-            hook: hook.clone(),
-        },
-        vec!["observed".to_owned()],
-    );
+    let (closure, constructor) = create_custom_element(move |element, _arguments| Recorder {
+        element,
+        hook: hook.clone(),
+    });
     closure.forget();
     web_sys::window()
         .unwrap()

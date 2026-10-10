@@ -14,6 +14,10 @@ pub(crate) struct Counter {
 }
 
 impl CustomElement for Counter {
+    fn observed_attributes() -> &'static [&'static str] {
+        &[Self::COUNT_ATTR_NAME, Self::STEP_ATTR_NAME]
+    }
+
     fn connected_callback(&self) {
         self.render();
         self.increment_button
@@ -156,12 +160,5 @@ impl Counter {
         new_count_string
             .parse::<i32>()
             .unwrap_or(Self::DEFAULT_STEP)
-    }
-
-    pub(crate) fn observed_attributes() -> Vec<String> {
-        vec![
-            Self::COUNT_ATTR_NAME.to_string(),
-            Self::STEP_ATTR_NAME.to_string(),
-        ]
     }
 }

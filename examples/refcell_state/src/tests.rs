@@ -14,7 +14,6 @@ impl Fixture {
     fn register(name: &str) -> Self {
         let (closure, constructor) = custom_element::create_custom_element(
             CompoundCounter::new,
-            CompoundCounter::observed_attributes(),
         );
         closure.forget();
         window()
@@ -70,6 +69,10 @@ struct ObservedCompoundCounter {
 }
 
 impl CustomElement for ObservedCompoundCounter {
+    fn observed_attributes() -> &'static [&'static str] {
+        CompoundCounter::observed_attributes()
+    }
+
     fn connected_callback(&self) {
         self.inner.connected_callback();
     }
@@ -108,7 +111,6 @@ fn one_click_updates_both_fields_before_return() {
                 seen: retained_seen.clone(),
             }
         },
-        CompoundCounter::observed_attributes(),
     );
     closure.forget();
     window()

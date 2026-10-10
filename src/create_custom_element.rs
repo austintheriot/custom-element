@@ -74,7 +74,6 @@ pub struct CustomElementResult {
 ///         sequence.set(next);
 ///         Item { sequence: next }
 ///     },
-///     vec![],
 /// );
 /// closure.forget();
 /// let _ = constructor;
@@ -99,10 +98,9 @@ pub fn create_custom_element<
     Factory: Fn(HtmlElement, Array) -> Component + 'static,
 >(
     factory: Factory,
-    attributes: Vec<String>,
 ) -> (MakeStruct, GeneratedConstructor) {
     let config = CustomElementConfiguration::default();
-    create_custom_element_with_config(factory, attributes, config)
+    create_custom_element_with_config(factory, config)
 }
 
 /// Creates a custom element with a custom configuration.
@@ -114,9 +112,12 @@ pub fn create_custom_element_with_config<
     Factory: Fn(HtmlElement, Array) -> Component + 'static,
 >(
     factory: Factory,
-    attributes: Vec<String>,
     config: CustomElementConfiguration,
 ) -> (MakeStruct, GeneratedConstructor) {
+    let attributes = Component::observed_attributes()
+        .iter()
+        .map(|attribute| (*attribute).to_owned())
+        .collect();
     let closure = Closure::new(move |element: JsValue, args| {
         let bridge: Bridge = factory(element.unchecked_into(), args).into();
         bridge.into()

@@ -33,10 +33,6 @@ impl CellCounter {
         }
     }
 
-    pub(crate) fn observed_attributes() -> Vec<String> {
-        vec!["count".to_owned()]
-    }
-
     fn increment(&self) {
         let next = self.count.get().saturating_add(1);
         self.count.set(next);
@@ -52,6 +48,10 @@ impl CellCounter {
 }
 
 impl CustomElement for CellCounter {
+    fn observed_attributes() -> &'static [&'static str] {
+        &["count"]
+    }
+
     fn connected_callback(&self) {
         self.render();
         self.button

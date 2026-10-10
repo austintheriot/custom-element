@@ -28,15 +28,12 @@ pub mod autonomous_custom_elements {
         {
             // create custom element class
             let arg_peeked_from_constructor = Rc::clone(&arg_peeked_from_constructor);
-            let (closure, constructor) = create_custom_element(
-                move |_element, args| {
-                    arg_peeked_from_constructor
-                        .borrow_mut()
-                        .replace(args.get(0));
-                    MockCustomElement
-                },
-                vec![String::from("count")],
-            );
+            let (closure, constructor) = create_custom_element(move |_element, args| {
+                arg_peeked_from_constructor
+                    .borrow_mut()
+                    .replace(args.get(0));
+                MockCustomElement
+            });
             closure.forget();
 
             // define custom element
@@ -91,7 +88,6 @@ pub mod customized_built_in_components {
                         .replace(args.get(0));
                     MockCustomElement
                 },
-                vec![String::from("count")],
                 CustomElementConfiguration {
                     element_constructor: html_paragraph_element_constructor(),
                 },

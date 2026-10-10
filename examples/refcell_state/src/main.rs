@@ -5,7 +5,6 @@ use component::CompoundCounter;
 fn main() {
     let (closure, constructor) = custom_element::create_custom_element(
         CompoundCounter::new,
-        CompoundCounter::observed_attributes(),
     );
     closure.forget();
 
