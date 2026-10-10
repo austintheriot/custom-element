@@ -12,7 +12,7 @@ struct Fixture {
 }
 
 impl Fixture {
-    fn new(name: &str, count: Option<&str>, step: Option<&str>) -> Self {
+    fn register(name: &str, count: Option<&str>, step: Option<&str>) -> Self {
         let (closure, constructor) =
             custom_element::create_custom_element(Counter::new, Counter::observed_attributes());
         closure.forget();
@@ -87,14 +87,14 @@ impl Drop for Fixture {
 
 #[wasm_bindgen_test]
 fn missing_attributes_display_defaults_without_writing_attributes() {
-    let counter = Fixture::new("test-counter-defaults", None, None);
+    let counter = Fixture::register("test-counter-defaults", None, None);
     counter.assert_count(None, "Count is 0");
     counter.assert_step(None, "Increment by 1");
 }
 
 #[wasm_bindgen_test]
 fn two_clicks_update_count_and_display_before_returning() {
-    let counter = Fixture::new("test-counter-two-clicks", Some("4"), Some("2"));
+    let counter = Fixture::register("test-counter-two-clicks", Some("4"), Some("2"));
     counter.assert_count(Some("4"), "Count is 4");
     counter.assert_step(Some("2"), "Increment by 2");
     counter.click("increment");
@@ -105,7 +105,7 @@ fn two_clicks_update_count_and_display_before_returning() {
 
 #[wasm_bindgen_test]
 fn plus_and_minus_update_step_immediately() {
-    let counter = Fixture::new("test-counter-step-buttons", None, Some("1"));
+    let counter = Fixture::register("test-counter-step-buttons", None, Some("1"));
     counter.assert_step(Some("1"), "Increment by 1");
     counter.click("plus");
     counter.assert_step(Some("2"), "Increment by 2");
@@ -118,12 +118,12 @@ fn plus_and_minus_update_step_immediately() {
 
 #[wasm_bindgen_test]
 fn zero_step_keeps_count_and_negative_step_decrements_it() {
-    let zero_step = Fixture::new("test-counter-zero-step", Some("4"), Some("0"));
+    let zero_step = Fixture::register("test-counter-zero-step", Some("4"), Some("0"));
     zero_step.assert_count(Some("4"), "Count is 4");
     zero_step.click("increment");
     zero_step.assert_count(Some("4"), "Count is 4");
 
-    let negative_step = Fixture::new("test-counter-negative-step", Some("4"), Some("-2"));
+    let negative_step = Fixture::register("test-counter-negative-step", Some("4"), Some("-2"));
     negative_step.assert_count(Some("4"), "Count is 4");
     negative_step.click("increment");
     negative_step.assert_count(Some("2"), "Count is 2");
@@ -131,7 +131,7 @@ fn zero_step_keeps_count_and_negative_step_decrements_it() {
 
 #[wasm_bindgen_test]
 fn external_attribute_changes_render_without_clicks() {
-    let counter = Fixture::new("test-counter-external-attributes", Some("4"), Some("3"));
+    let counter = Fixture::register("test-counter-external-attributes", Some("4"), Some("3"));
     counter.assert_count(Some("4"), "Count is 4");
     counter.element.set_attribute("count", "9").unwrap();
     counter.assert_count(Some("9"), "Count is 9");
@@ -150,7 +150,7 @@ fn invalid_count_uses_display_default_and_preserves_raw_attribute() {
         ("test-counter-invalid-count-text", "abc"),
         ("test-counter-invalid-count-overflow", "2147483648"),
     ] {
-        let counter = Fixture::new(name, Some(raw_count), None);
+        let counter = Fixture::register(name, Some(raw_count), None);
         counter.assert_count(Some(raw_count), "Count is 0");
         counter.assert_step(None, "Increment by 1");
     }
@@ -162,7 +162,7 @@ fn invalid_step_uses_increment_default_and_preserves_raw_attribute() {
         ("test-counter-invalid-step-text", "abc"),
         ("test-counter-invalid-step-overflow", "2147483648"),
     ] {
-        let counter = Fixture::new(name, Some("0"), Some(raw_step));
+        let counter = Fixture::register(name, Some("0"), Some(raw_step));
         counter.assert_count(Some("0"), "Count is 0");
         counter.assert_step(Some(raw_step), "Increment by 1");
         counter.click("increment");
@@ -174,7 +174,7 @@ fn invalid_step_uses_increment_default_and_preserves_raw_attribute() {
 #[wasm_bindgen_test]
 fn counter_instances_keep_independent_attributes_and_displays() {
     let name = "test-counter-isolation";
-    let first = Fixture::new(name, Some("4"), Some("2"));
+    let first = Fixture::register(name, Some("4"), Some("2"));
     let second = Fixture::from_registration(name, Some("9"), Some("5"));
     first.assert_count(Some("4"), "Count is 4");
     first.assert_step(Some("2"), "Increment by 2");
@@ -196,7 +196,7 @@ fn counter_instances_keep_independent_attributes_and_displays() {
 
 #[wasm_bindgen_test]
 fn detached_attribute_change_renders_and_reconnected_click_adds_step_once() {
-    let counter = Fixture::new("test-counter-reconnect", Some("4"), Some("2"));
+    let counter = Fixture::register("test-counter-reconnect", Some("4"), Some("2"));
     counter.assert_count(Some("4"), "Count is 4");
     counter.element.remove();
     counter.element.set_attribute("count", "9").unwrap();
@@ -218,18 +218,18 @@ fn detached_attribute_change_renders_and_reconnected_click_adds_step_once() {
 
 #[wasm_bindgen_test]
 fn detached_button_clicks_do_not_change_state() {
-    let counter = Fixture::new("test-counter-detached-clicks", Some("4"), Some("2"));
+    let counter = Fixture::register("test-counter-detached-clicks", Some("4"), Some("2"));
     counter.element.remove();
     for role in ["increment", "plus", "minus"] {
         counter.click(role);
+        counter.assert_count(Some("4"), "Count is 4");
+        counter.assert_step(Some("2"), "Increment by 2");
     }
-    counter.assert_count(Some("4"), "Count is 4");
-    counter.assert_step(Some("2"), "Increment by 2");
 }
 
 #[wasm_bindgen_test]
 fn non_click_events_on_buttons_do_not_change_state() {
-    let counter = Fixture::new("test-counter-non-click", Some("4"), Some("2"));
+    let counter = Fixture::register("test-counter-non-click", Some("4"), Some("2"));
     for role in ["increment", "plus", "minus"] {
         let button = counter.button(role);
         button
