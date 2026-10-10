@@ -3,7 +3,7 @@ use std::any::Any;
 use custom_element::{CustomElement, GeneratedConstructor};
 
 use wasm_bindgen::prelude::wasm_bindgen;
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use web_sys::{HtmlElement, ShadowRootInit, ShadowRootMode};
 
 use crate::leptos_app::{App, AppProps};
@@ -48,8 +48,7 @@ impl CustomElementApp {
     }
 
     // is called every time this component is created fresh
-    fn new(instance: JsValue, state: State) -> Self {
-        let instance: HtmlElement = instance.into();
+    fn new(instance: HtmlElement, state: State) -> Self {
         let shadow_root_init = ShadowRootInit::new(ShadowRootMode::Open);
         let shadow_root = instance.attach_shadow(&shadow_root_init).unwrap();
         let mounted_view = leptos::mount::mount_to(shadow_root.unchecked_into(), move || {

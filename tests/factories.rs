@@ -40,7 +40,7 @@ fn factory_can_create_another_registered_element_before_returning() {
         move |instance, _arguments: Array| {
             let next_call = recorded_calls.get() + 1;
             recorded_calls.set(next_call);
-            recorded_instances.borrow_mut().push(instance);
+            recorded_instances.borrow_mut().push(instance.into());
             if next_call == 1 {
                 let _nested = window()
                     .unwrap()
@@ -187,7 +187,7 @@ fn arguments_preserve_order_and_identity() {
     let recorded = seen.clone();
     let (closure, constructor) = create_custom_element(
         move |element, arguments| {
-            recorded.borrow_mut().push((element, arguments));
+            recorded.borrow_mut().push((element.into(), arguments));
             Empty
         },
         vec![],
@@ -576,4 +576,31 @@ fn assert_type_error(errors: &Array) {
             .as_deref(),
         Some("TypeError")
     );
+}
+
+#[wasm_bindgen_test]
+fn factory_receives_the_element_as_html_element() {
+    let observed_name = Rc::new(RefCell::new(String::new()));
+    let recorded_name = observed_name.clone();
+    let name = common::names::unique_custom_element_name();
+    let (closure, constructor) = create_custom_element(
+        move |element: HtmlElement, _arguments| {
+            recorded_name.replace(element.local_name());
+            Empty
+        },
+        vec![],
+    );
+    closure.forget();
+    window()
+        .unwrap()
+        .custom_elements()
+        .define(&name, &constructor)
+        .unwrap();
+    window()
+        .unwrap()
+        .document()
+        .unwrap()
+        .create_element(&name)
+        .unwrap();
+    assert_eq!(*observed_name.borrow(), name);
 }

@@ -11,8 +11,9 @@ All notable changes to this crate are in this file. The format follows
 - All six `CustomElement` callbacks take `&self` instead of `&mut self`.
   Use interior mutability when a callback changes Rust-owned state.
 - The factory passed to `create_custom_element` and
-  `create_custom_element_with_config` is `Fn(JsValue, Array) -> Component`.
-  It was `FnMut`. The factory can capture shared configuration, but it must
+  `create_custom_element_with_config` is `Fn(HtmlElement, Array) -> Component`.
+  It was `FnMut(JsValue, Array) -> Component`. The factory receives the
+  element as `HtmlElement`, so it no longer converts a `JsValue`. The factory can capture shared configuration, but it must
   create a component for each call.
 - The returned closure type is `Closure<dyn Fn(JsValue, Array) -> JsValue>`.
   It was a `dyn FnMut` closure. Keep the closure alive while the registered

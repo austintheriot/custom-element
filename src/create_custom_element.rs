@@ -1,5 +1,6 @@
 use js_sys::{Array, Function};
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, JsCast};
+use web_sys::HtmlElement;
 
 use crate::{constructors::html_element_constructor, Bridge, CustomElement, GeneratedConstructor};
 
@@ -95,7 +96,7 @@ pub struct CustomElementResult {
 /// permits same-type reentry when application state has no conflicting borrow.
 pub fn create_custom_element<
     Component: CustomElement + 'static,
-    Factory: Fn(JsValue, Array) -> Component + 'static,
+    Factory: Fn(HtmlElement, Array) -> Component + 'static,
 >(
     factory: Factory,
     attributes: Vec<String>,
@@ -110,14 +111,14 @@ pub fn create_custom_element<
 /// [`create_custom_element`].
 pub fn create_custom_element_with_config<
     Component: CustomElement + 'static,
-    Factory: Fn(JsValue, Array) -> Component + 'static,
+    Factory: Fn(HtmlElement, Array) -> Component + 'static,
 >(
     factory: Factory,
     attributes: Vec<String>,
     config: CustomElementConfiguration,
 ) -> (MakeStruct, GeneratedConstructor) {
-    let closure = Closure::new(move |element, args| {
-        let bridge: Bridge = factory(element, args).into();
+    let closure = Closure::new(move |element: JsValue, args| {
+        let bridge: Bridge = factory(element.unchecked_into(), args).into();
         bridge.into()
     });
     let class = _create_custom_element(&closure, attributes, &config.element_constructor);
