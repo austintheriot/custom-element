@@ -21,13 +21,13 @@ impl CustomElement for Counter {
     fn connected_callback(&self) {
         self.render();
         self.increment_button
-            .add_event_listener_with_callback("click", &self.instance.clone().unchecked_into())
+            .add_event_listener_with_event_listener("click", self.instance.unchecked_ref())
             .unwrap();
         self.minus_button
-            .add_event_listener_with_callback("click", &self.instance.clone().unchecked_into())
+            .add_event_listener_with_event_listener("click", self.instance.unchecked_ref())
             .unwrap();
         self.plus_button
-            .add_event_listener_with_callback("click", &self.instance.clone().unchecked_into())
+            .add_event_listener_with_event_listener("click", self.instance.unchecked_ref())
             .unwrap();
     }
 
@@ -42,13 +42,13 @@ impl CustomElement for Counter {
 
     fn disconnected_callback(&self) {
         self.increment_button
-            .remove_event_listener_with_callback("click", &self.instance.clone().unchecked_into())
+            .remove_event_listener_with_event_listener("click", self.instance.unchecked_ref())
             .unwrap();
         self.minus_button
-            .remove_event_listener_with_callback("click", &self.instance.clone().unchecked_into())
+            .remove_event_listener_with_event_listener("click", self.instance.unchecked_ref())
             .unwrap();
         self.plus_button
-            .remove_event_listener_with_callback("click", &self.instance.clone().unchecked_into())
+            .remove_event_listener_with_event_listener("click", self.instance.unchecked_ref())
             .unwrap();
     }
 

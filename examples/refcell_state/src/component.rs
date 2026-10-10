@@ -70,13 +70,13 @@ impl CustomElement for CompoundCounter {
         };
         self.output.set_text_content(Some(&label));
         self.button
-            .add_event_listener_with_callback("click", &self.element.clone().unchecked_into())
+            .add_event_listener_with_event_listener("click", self.element.unchecked_ref())
             .unwrap();
     }
 
     fn disconnected_callback(&self) {
         self.button
-            .remove_event_listener_with_callback("click", &self.element.clone().unchecked_into())
+            .remove_event_listener_with_event_listener("click", self.element.unchecked_ref())
             .unwrap();
     }
 

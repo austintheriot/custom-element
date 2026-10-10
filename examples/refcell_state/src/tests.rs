@@ -209,7 +209,7 @@ fn click_on_host_does_not_increment() {
     let fixture = Fixture::register("refcell-host-click-test");
     fixture
         .element
-        .add_event_listener_with_callback("click", &fixture.element.clone().unchecked_into())
+        .add_event_listener_with_event_listener("click", fixture.element.unchecked_ref())
         .unwrap();
     fixture.element.click();
     fixture.assert_state(None, "Count: 0; updates: 0");

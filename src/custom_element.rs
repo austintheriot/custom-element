@@ -40,6 +40,11 @@ pub trait CustomElement {
 
     /// Enables using the custom element instance as an event handler catch-all
     ///
+    /// The element is an `EventListener` object, not a function. Register it
+    /// with `add_event_listener_with_event_listener(event_type,
+    /// element.unchecked_ref())`, which needs the `EventListener` feature of
+    /// `web-sys`.
+    ///
     /// see <https://gomakethings.com/the-handleevent-method-is-the-absolute-best-way-to-handle-events-in-web-components/>
     fn handle_event(&self, _event: Event) {}
 
