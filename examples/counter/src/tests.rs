@@ -14,7 +14,7 @@ struct Fixture {
 impl Fixture {
     fn register(name: &str, count: Option<&str>, step: Option<&str>) -> Self {
         let (closure, constructor) =
-            custom_element::create_custom_element(Counter::new, Counter::observed_attributes());
+            custom_element::create_custom_element(Counter::new);
         closure.forget();
         let browser = window().unwrap();
         browser

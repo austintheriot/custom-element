@@ -15,7 +15,6 @@ impl Fixture {
     fn register(name: &str) -> Self {
         let (closure, constructor) = custom_element::create_custom_element(
             CellCounter::new,
-            CellCounter::observed_attributes(),
         );
         closure.forget();
         window()
@@ -71,6 +70,10 @@ struct ObservedCellCounter {
 }
 
 impl CustomElement for ObservedCellCounter {
+    fn observed_attributes() -> &'static [&'static str] {
+        CellCounter::observed_attributes()
+    }
+
     fn connected_callback(&self) {
         self.inner.connected_callback();
     }
@@ -101,7 +104,6 @@ fn click_commits_cell_before_nested_attribute_callback() {
                 seen: retained_seen.clone(),
             }
         },
-        CellCounter::observed_attributes(),
     );
     closure.forget();
     let name = "cell-precommit-test";

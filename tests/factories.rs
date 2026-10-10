@@ -36,23 +36,20 @@ fn factory_can_create_another_registered_element_before_returning() {
     let recorded_calls = calls.clone();
     let recorded_instances = instances.clone();
     let nested_name = name.clone();
-    let (closure, constructor) = create_custom_element(
-        move |instance, _arguments: Array| {
-            let next_call = recorded_calls.get() + 1;
-            recorded_calls.set(next_call);
-            recorded_instances.borrow_mut().push(instance.into());
-            if next_call == 1 {
-                let _nested = window()
-                    .unwrap()
-                    .document()
-                    .unwrap()
-                    .create_element(&nested_name)
-                    .unwrap();
-            }
-            Empty
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |instance, _arguments: Array| {
+        let next_call = recorded_calls.get() + 1;
+        recorded_calls.set(next_call);
+        recorded_instances.borrow_mut().push(instance.into());
+        if next_call == 1 {
+            let _nested = window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .create_element(&nested_name)
+                .unwrap();
+        }
+        Empty
+    });
     closure.forget();
     common::browser::assert_no_browser_errors(|| {
         window()
@@ -96,22 +93,19 @@ fn fresh_construction_inside_a_factory_builds_a_complete_element() {
     let recorded_calls = calls.clone();
     let recorded_nested = nested.clone();
     let nested_name = name.clone();
-    let (closure, constructor) = create_custom_element(
-        move |_element, _arguments| {
-            recorded_calls.set(recorded_calls.get() + 1);
-            if recorded_calls.get() == 1 {
-                let element = window()
-                    .unwrap()
-                    .document()
-                    .unwrap()
-                    .create_element(&nested_name)
-                    .unwrap();
-                *recorded_nested.borrow_mut() = Some(element);
-            }
-            ConnectionCounter(recorded_connections.clone())
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |_element, _arguments| {
+        recorded_calls.set(recorded_calls.get() + 1);
+        if recorded_calls.get() == 1 {
+            let element = window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .create_element(&nested_name)
+                .unwrap();
+            *recorded_nested.borrow_mut() = Some(element);
+        }
+        ConnectionCounter(recorded_connections.clone())
+    });
     closure.forget();
     common::browser::assert_no_browser_errors(|| {
         window()
@@ -142,26 +136,23 @@ fn recursive_factory_releases_state_before_nested_construction() {
     let recorded = state.clone();
     let name = common::names::unique_custom_element_name();
     let nested_name = name.clone();
-    let (closure, constructor) = create_custom_element(
-        move |_element, _arguments| {
-            let index = {
-                let mut entries = recorded.borrow_mut();
-                entries.push("enter");
-                entries.len()
-            };
-            if index == 1 {
-                window()
-                    .unwrap()
-                    .document()
-                    .unwrap()
-                    .create_element(&nested_name)
-                    .unwrap();
-            }
-            recorded.borrow_mut().push("return");
-            Empty
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |_element, _arguments| {
+        let index = {
+            let mut entries = recorded.borrow_mut();
+            entries.push("enter");
+            entries.len()
+        };
+        if index == 1 {
+            window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .create_element(&nested_name)
+                .unwrap();
+        }
+        recorded.borrow_mut().push("return");
+        Empty
+    });
     closure.forget();
     common::browser::assert_no_browser_errors(|| {
         window()
@@ -185,13 +176,10 @@ fn recursive_factory_releases_state_before_nested_construction() {
 fn arguments_preserve_order_and_identity() {
     let seen = Rc::new(RefCell::new(Vec::<(JsValue, Array)>::new()));
     let recorded = seen.clone();
-    let (closure, constructor) = create_custom_element(
-        move |element, arguments| {
-            recorded.borrow_mut().push((element.into(), arguments));
-            Empty
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |element, arguments| {
+        recorded.borrow_mut().push((element.into(), arguments));
+        Empty
+    });
     let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
@@ -227,7 +215,6 @@ fn arguments_preserve_order_and_identity() {
 fn explicit_autonomous_configuration_constructs() {
     let (closure, constructor) = create_custom_element_with_config(
         |_element, _arguments| Empty,
-        vec![],
         CustomElementConfiguration {
             element_constructor: html_element_constructor(),
         },
@@ -259,7 +246,6 @@ fn configured_paragraph_uses_correct_creation_path() {
     }
     let (closure, constructor) = create_custom_element_with_config(
         move |_element, _arguments| ParagraphState(recorded.clone()),
-        vec![],
         CustomElementConfiguration {
             element_constructor: html_paragraph_element_constructor(),
         },
@@ -303,13 +289,10 @@ fn configured_paragraph_uses_correct_creation_path() {
 async fn factory_remains_callable_across_turns() {
     let calls = Rc::new(Cell::new(0));
     let recorded = calls.clone();
-    let (closure, constructor) = create_custom_element(
-        move |_element, _arguments| {
-            recorded.set(recorded.get() + 1);
-            Empty
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |_element, _arguments| {
+        recorded.set(recorded.get() + 1);
+        Empty
+    });
     let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
@@ -334,13 +317,10 @@ async fn factory_remains_callable_across_turns() {
 fn dropping_factory_fails_visibly() {
     let calls = Rc::new(Cell::new(0));
     let recorded = calls.clone();
-    let (closure, constructor) = create_custom_element(
-        move |_element, _arguments| {
-            recorded.set(recorded.get() + 1);
-            Empty
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |_element, _arguments| {
+        recorded.set(recorded.get() + 1);
+        Empty
+    });
     let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
         window()
@@ -365,14 +345,11 @@ fn factory_state_is_local_to_registration() {
         let recorded = Rc::new(RefCell::new(Vec::new()));
         let next = sequence.clone();
         let output = recorded.clone();
-        let (closure, constructor) = create_custom_element(
-            move |_element, _arguments| {
-                next.set(next.get() + 1);
-                output.borrow_mut().push(next.get());
-                Empty
-            },
-            vec![],
-        );
+        let (closure, constructor) = create_custom_element(move |_element, _arguments| {
+            next.set(next.get() + 1);
+            output.borrow_mut().push(next.get());
+            Empty
+        });
         let name = common::names::unique_custom_element_name();
         common::browser::assert_no_browser_errors(|| {
             window()
@@ -416,16 +393,13 @@ fn cloned_element_has_separate_component() {
     let observed = Rc::new(RefCell::new(Vec::new()));
     let recorded_calls = calls.clone();
     let recorded = observed.clone();
-    let (closure, constructor) = create_custom_element(
-        move |_element, _arguments| {
-            recorded_calls.set(recorded_calls.get() + 1);
-            PrivateState {
-                value: Cell::new(0),
-                observed: recorded.clone(),
-            }
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |_element, _arguments| {
+        recorded_calls.set(recorded_calls.get() + 1);
+        PrivateState {
+            value: Cell::new(0),
+            observed: recorded.clone(),
+        }
+    });
     closure.forget();
     let name = common::names::unique_custom_element_name();
     common::browser::assert_no_browser_errors(|| {
@@ -463,6 +437,10 @@ fn cloned_element_has_separate_component() {
 struct UpgradeRecorder(Rc<RefCell<Vec<&'static str>>>);
 
 impl CustomElement for UpgradeRecorder {
+    fn observed_attributes() -> &'static [&'static str] {
+        &["observed"]
+    }
+
     fn attribute_changed_callback(&self, _name: &str, _old: JsValue, _new: JsValue) {
         self.0.borrow_mut().push("attribute");
     }
@@ -485,13 +463,10 @@ fn upgrade_initializes_bridge_before_callbacks() {
     });
     let trace = Rc::new(RefCell::new(Vec::new()));
     let recorded = trace.clone();
-    let (closure, constructor) = create_custom_element(
-        move |_element, _arguments| {
-            recorded.borrow_mut().push("factory");
-            UpgradeRecorder(recorded.clone())
-        },
-        vec!["observed".to_owned()],
-    );
+    let (closure, constructor) = create_custom_element(move |_element, _arguments| {
+        recorded.borrow_mut().push("factory");
+        UpgradeRecorder(recorded.clone())
+    });
     common::browser::assert_no_browser_errors(|| {
         window()
             .unwrap()
@@ -534,23 +509,20 @@ fn upgrade_recursion_preserves_browser_restriction() {
     let recorded_count = count.clone();
     let recorded_nested = nested.clone();
     let nested_name = name.clone();
-    let (closure, constructor) = create_custom_element(
-        move |_element, _arguments| {
-            let current = recorded_count.get() + 1;
-            recorded_count.set(current);
-            if current == 1 {
-                let element = window()
-                    .unwrap()
-                    .document()
-                    .unwrap()
-                    .create_element(&nested_name)
-                    .unwrap();
-                *recorded_nested.borrow_mut() = Some(element);
-            }
-            Empty
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |_element, _arguments| {
+        let current = recorded_count.get() + 1;
+        recorded_count.set(current);
+        if current == 1 {
+            let element = window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .create_element(&nested_name)
+                .unwrap();
+            *recorded_nested.borrow_mut() = Some(element);
+        }
+        Empty
+    });
     let (_, errors) = common::browser::capture_browser_errors(|| {
         window()
             .unwrap()
@@ -583,13 +555,10 @@ fn factory_receives_the_element_as_html_element() {
     let observed_name = Rc::new(RefCell::new(String::new()));
     let recorded_name = observed_name.clone();
     let name = common::names::unique_custom_element_name();
-    let (closure, constructor) = create_custom_element(
-        move |element: HtmlElement, _arguments| {
-            recorded_name.replace(element.local_name());
-            Empty
-        },
-        vec![],
-    );
+    let (closure, constructor) = create_custom_element(move |element: HtmlElement, _arguments| {
+        recorded_name.replace(element.local_name());
+        Empty
+    });
     closure.forget();
     window()
         .unwrap()

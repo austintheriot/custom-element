@@ -105,7 +105,6 @@ let (closure, constructor) = create_custom_element(
     move |_element: HtmlElement, _args: Array| Greeting {
         text: Rc::clone(&shared_text),
     },
-    vec![],
 );
 closure.forget();
 let _ = constructor;
@@ -128,7 +127,6 @@ let (closure, constructor) = create_custom_element(
         sequence.set(next);
         Item { sequence: next }
     },
-    vec![],
 );
 closure.forget();
 let _ = constructor;

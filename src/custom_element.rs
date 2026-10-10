@@ -11,6 +11,19 @@ use web_sys::Event;
 /// conflicts with a nested mutable borrow. A mutable guard conflicts with
 /// every nested borrow.
 pub trait CustomElement {
+    /// Names the attributes whose changes call `attribute_changed_callback`
+    ///
+    /// The browser reads this list once, when the element is defined. The
+    /// default observes no attributes.
+    ///
+    /// See [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements#responding_to_attribute_changes)
+    fn observed_attributes() -> &'static [&'static str]
+    where
+        Self: Sized,
+    {
+        &[]
+    }
+
     /// Called each time the element is added to the document    
     ///
     /// See [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)

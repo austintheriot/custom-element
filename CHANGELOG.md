@@ -35,6 +35,10 @@ All notable changes to this crate are in this file. The format follows
 - `CustomElementConfiguration` owns its `element_constructor` as a
   `Function` instead of borrowing it, so the struct no longer implements
   `Copy` and has no lifetime parameter.
+- `create_custom_element` and `create_custom_element_with_config` no longer
+  take an attribute list. Implement `CustomElement::observed_attributes` on
+  the component type instead. It returns `&'static [&'static str]` and
+  defaults to an empty list.
 
 ### Migrating a mutable capture
 
@@ -64,6 +68,5 @@ let (closure, constructor) = create_custom_element(
         sequence.set(next);
         Item { sequence: next }
     },
-    vec![],
 );
 ```

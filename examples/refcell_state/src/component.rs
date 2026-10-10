@@ -41,10 +41,6 @@ impl CompoundCounter {
         }
     }
 
-    pub(crate) fn observed_attributes() -> Vec<String> {
-        vec!["count".to_owned()]
-    }
-
     fn increment(&self) {
         let (count, label) = {
             let mut model = self.model.borrow_mut();
@@ -63,6 +59,10 @@ impl CompoundCounter {
 }
 
 impl CustomElement for CompoundCounter {
+    fn observed_attributes() -> &'static [&'static str] {
+        &["count"]
+    }
+
     fn connected_callback(&self) {
         let label = {
             let model = self.model.borrow();

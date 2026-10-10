@@ -107,7 +107,6 @@ pub mod customized_built_in_custom_elements {
                     connections: connections_for_constructor.clone(),
                 }
             },
-            vec![],
             CustomElementConfiguration {
                 element_constructor: html_paragraph_element_constructor(),
             },

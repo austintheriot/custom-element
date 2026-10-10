@@ -51,7 +51,7 @@
 //! fn main() {
 //!     // create custom element constructor
 //!     let component_name = "hello-world";
-//!     let (closure, constructor) = custom_element::create_custom_element(HelloWorld::new, vec![]);
+//!     let (closure, constructor) = custom_element::create_custom_element(HelloWorld::new);
 //!
 //!     // we want the Rust code for our custom element to live forever
 //!     closure.forget();

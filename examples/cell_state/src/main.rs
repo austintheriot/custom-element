@@ -4,7 +4,7 @@ use component::CellCounter;
 
 fn main() {
     let (closure, constructor) =
-        custom_element::create_custom_element(CellCounter::new, CellCounter::observed_attributes());
+        custom_element::create_custom_element(CellCounter::new);
     closure.forget();
 
     let browser = web_sys::window().unwrap();

@@ -104,8 +104,7 @@ impl CustomElement for Empty {}
 #[wasm_bindgen_test]
 fn default_callbacks_accept_every_invocation() {
     for (method, arguments, _expected) in forwarding_cases() {
-        let (closure, constructor) =
-            create_custom_element(|_element, _arguments| Empty, vec!["observed".to_owned()]);
+        let (closure, constructor) = create_custom_element(|_element, _arguments| Empty);
         closure.forget();
         let name = common::names::unique_custom_element_name();
         common::browser::assert_no_browser_errors(|| {
@@ -259,12 +258,10 @@ fn native_move_without_override_reconnects() {
     }
     let trace = Rc::new(RefCell::new(Vec::new()));
     let recorded = trace.clone();
-    let (closure, constructor) = create_custom_element(
-        move |_element, _arguments| ConnectionOnly {
+    let (closure, constructor) =
+        create_custom_element(move |_element, _arguments| ConnectionOnly {
             trace: recorded.clone(),
-        },
-        vec![],
-    );
+        });
     closure.forget();
     let name = common::names::unique_custom_element_name();
     window()
@@ -435,4 +432,44 @@ fn observer_detects_error_after_callback_effect() {
         invoke(element.as_ref(), "connectedCallback", &Array::new()).unwrap()
     });
     assert_eq!(*calls.borrow(), vec!["connected", "connected"]);
+}
+
+struct WatchesOneAttribute {
+    changes: Rc<RefCell<Vec<String>>>,
+}
+
+impl CustomElement for WatchesOneAttribute {
+    fn observed_attributes() -> &'static [&'static str] {
+        &["watched"]
+    }
+
+    fn attribute_changed_callback(&self, name: &str, _old_value: JsValue, _new_value: JsValue) {
+        self.changes.borrow_mut().push(name.to_owned());
+    }
+}
+
+#[wasm_bindgen_test]
+fn component_declares_its_observed_attributes() {
+    let changes = Rc::new(RefCell::new(Vec::new()));
+    let recorded = changes.clone();
+    let (closure, constructor) =
+        create_custom_element(move |_element, _arguments| WatchesOneAttribute {
+            changes: recorded.clone(),
+        });
+    closure.forget();
+    let name = common::names::unique_custom_element_name();
+    window()
+        .unwrap()
+        .custom_elements()
+        .define(&name, &constructor)
+        .unwrap();
+    let element = window()
+        .unwrap()
+        .document()
+        .unwrap()
+        .create_element(&name)
+        .unwrap();
+    element.set_attribute("ignored", "1").unwrap();
+    element.set_attribute("watched", "1").unwrap();
+    assert_eq!(*changes.borrow(), vec!["watched".to_owned()]);
 }

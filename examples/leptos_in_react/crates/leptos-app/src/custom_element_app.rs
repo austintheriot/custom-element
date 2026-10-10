@@ -33,7 +33,6 @@ impl CustomElementApp {
     fn create_app_element(state: State) -> GeneratedConstructor {
         let (closure, constructor) = custom_element::create_custom_element(
             move |instance, _args| CustomElementApp::new(instance, state),
-            vec![],
         );
         closure.forget();
         constructor
