@@ -205,3 +205,14 @@ fn reconnection_restores_one_listener_and_preserves_state() {
     fixture.click();
     fixture.assert_state(Some("3"), "Count: 3; updates: 3");
 }
+
+#[wasm_bindgen_test]
+fn click_on_host_does_not_increment() {
+    let fixture = Fixture::register("refcell-host-click-test");
+    fixture
+        .element
+        .add_event_listener_with_callback("click", &fixture.element.clone().unchecked_into())
+        .unwrap();
+    fixture.element.click();
+    fixture.assert_state(None, "Count: 0; updates: 0");
+}

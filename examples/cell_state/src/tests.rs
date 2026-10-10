@@ -220,3 +220,14 @@ fn equal_attribute_write_renders_again() {
     fixture.element.set_attribute("count", "5").unwrap();
     fixture.assert_count(Some("5"), "Count: 5");
 }
+
+#[wasm_bindgen_test]
+fn click_on_host_does_not_increment() {
+    let fixture = Fixture::register("cell-host-click-test");
+    fixture
+        .element
+        .add_event_listener_with_callback("click", &fixture.element.clone().unchecked_into())
+        .unwrap();
+    fixture.element.click();
+    fixture.assert_count(None, "Count: 0");
+}

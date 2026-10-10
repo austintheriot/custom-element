@@ -1,6 +1,6 @@
 use wasm_bindgen::JsCast;
 use wasm_bindgen_test::*;
-use web_sys::{window, HtmlElement, ShadowRoot};
+use web_sys::{window, Event, HtmlElement, ShadowRoot};
 
 use crate::component::Counter;
 
@@ -39,15 +39,17 @@ impl Fixture {
         Self { element, shadow }
     }
 
-    fn click(&self, role: &str) {
-        let button: HtmlElement = self
-            .shadow
+    fn button(&self, role: &str) -> HtmlElement {
+        self.shadow
             .query_selector(&format!("[data-role='{role}']"))
             .unwrap()
             .unwrap()
             .dyn_into()
-            .unwrap();
-        button.click();
+            .unwrap()
+    }
+
+    fn click(&self, role: &str) {
+        self.button(role).click();
     }
 
     fn assert_count(&self, raw: Option<&str>, display: &str) {
@@ -193,7 +195,7 @@ fn counter_instances_keep_independent_attributes_and_displays() {
 }
 
 #[wasm_bindgen_test]
-fn detached_attribute_change_renders_and_reconnection_keeps_one_listener() {
+fn detached_attribute_change_renders_and_reconnected_click_adds_step_once() {
     let counter = Fixture::new("test-counter-reconnect", Some("4"), Some("2"));
     counter.assert_count(Some("4"), "Count is 4");
     counter.element.remove();
@@ -212,4 +214,31 @@ fn detached_attribute_change_renders_and_reconnection_keeps_one_listener() {
     counter.assert_count(Some("11"), "Count is 11");
     counter.click("increment");
     counter.assert_count(Some("13"), "Count is 13");
+}
+
+#[wasm_bindgen_test]
+fn detached_button_clicks_do_not_change_state() {
+    let counter = Fixture::new("test-counter-detached-clicks", Some("4"), Some("2"));
+    counter.element.remove();
+    for role in ["increment", "plus", "minus"] {
+        counter.click(role);
+    }
+    counter.assert_count(Some("4"), "Count is 4");
+    counter.assert_step(Some("2"), "Increment by 2");
+}
+
+#[wasm_bindgen_test]
+fn non_click_events_on_buttons_do_not_change_state() {
+    let counter = Fixture::new("test-counter-non-click", Some("4"), Some("2"));
+    for role in ["increment", "plus", "minus"] {
+        let button = counter.button(role);
+        button
+            .add_event_listener_with_callback("input", &counter.element.clone().unchecked_into())
+            .unwrap();
+        button
+            .dispatch_event(&Event::new("input").unwrap())
+            .unwrap();
+    }
+    counter.assert_count(Some("4"), "Count is 4");
+    counter.assert_step(Some("2"), "Increment by 2");
 }
