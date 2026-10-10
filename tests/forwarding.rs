@@ -40,8 +40,8 @@ fn forwarding_cases() -> Vec<(&'static str, Array, Call)> {
             attribute_arguments,
             Call::Attribute {
                 name: "observed".to_owned(),
-                old: JsValue::NULL,
-                new: JsValue::from_str("value"),
+                old: None,
+                new: Some("value".to_owned()),
             },
         ),
         ("handleEvent", event_arguments, Call::Event(event)),
@@ -67,8 +67,8 @@ fn assert_call(actual: Call, expected: Call) {
             },
         ) => {
             assert_eq!(actual_name, expected_name);
-            assert!(Object::is(&actual_old, &expected_old));
-            assert!(Object::is(&actual_new, &expected_new));
+            assert_eq!(actual_old, expected_old);
+            assert_eq!(actual_new, expected_new);
         }
         (Call::Event(actual_event), Call::Event(expected_event)) => {
             assert!(Object::is(actual_event.as_ref(), expected_event.as_ref()));
@@ -131,7 +131,7 @@ fn default_callbacks_accept_every_invocation() {
 
 #[wasm_bindgen_test]
 fn observed_attribute_transitions_keep_exact_values() {
-    let attributes = Rc::new(RefCell::new(Vec::<(String, JsValue, JsValue)>::new()));
+    let attributes = Rc::new(RefCell::new(Vec::<AttributeChange>::new()));
     let recorded = attributes.clone();
     let element = create_recorder(Rc::new(move |_element, call| {
         if let Call::Attribute { name, old, new } = call {
@@ -139,9 +139,9 @@ fn observed_attribute_transitions_keep_exact_values() {
         }
     }));
     let operations = [
-        ("", JsValue::NULL, JsValue::from_str("")),
-        ("null", JsValue::from_str(""), JsValue::from_str("null")),
-        ("null", JsValue::from_str("null"), JsValue::from_str("null")),
+        ("", None, Some(String::new())),
+        ("null", Some(String::new()), Some("null".to_owned())),
+        ("null", Some("null".to_owned()), Some("null".to_owned())),
     ];
     for (value, expected_old, expected_new) in operations {
         common::browser::assert_no_browser_errors(|| {
@@ -150,16 +150,16 @@ fn observed_attribute_transitions_keep_exact_values() {
         let recorded = attributes.borrow();
         let (name, old, new) = recorded.last().unwrap();
         assert_eq!(name, "observed");
-        assert!(Object::is(old, &expected_old));
-        assert!(Object::is(new, &expected_new));
+        assert_eq!(old, &expected_old);
+        assert_eq!(new, &expected_new);
     }
     common::browser::assert_no_browser_errors(|| element.remove_attribute("observed").unwrap());
     {
         let recorded = attributes.borrow();
         let (name, old, new) = recorded.last().unwrap();
         assert_eq!(name, "observed");
-        assert!(Object::is(old, &JsValue::from_str("null")));
-        assert!(Object::is(new, &JsValue::NULL));
+        assert_eq!(old.as_deref(), Some("null"));
+        assert_eq!(new, &None);
         assert_eq!(recorded.len(), 4);
     }
     common::browser::assert_no_browser_errors(|| {
@@ -182,8 +182,8 @@ fn observed_attribute_transitions_keep_exact_values() {
     });
     let recorded = attributes.borrow();
     assert_eq!(recorded.len(), 5);
-    assert!(Object::is(&recorded[4].1, &JsValue::NULL));
-    assert!(Object::is(&recorded[4].2, &JsValue::from_str("detached")));
+    assert_eq!(recorded[4].1, None);
+    assert_eq!(recorded[4].2.as_deref(), Some("detached"));
 }
 
 #[wasm_bindgen_test]
@@ -338,7 +338,7 @@ impl CustomElement for RecordingBridge {
     fn connected_move_callback(&self) {
         self.0.borrow_mut().push("moved");
     }
-    fn attribute_changed_callback(&self, _name: &str, _old: JsValue, _new: JsValue) {
+    fn attribute_changed_callback(&self, _name: &str, _old: Option<String>, _new: Option<String>) {
         self.0.borrow_mut().push("attribute");
     }
     fn handle_event(&self, _event: Event) {
@@ -434,8 +434,10 @@ fn observer_detects_error_after_callback_effect() {
     assert_eq!(*calls.borrow(), vec!["connected", "connected"]);
 }
 
+type AttributeChange = (String, Option<String>, Option<String>);
+
 struct WatchesOneAttribute {
-    changes: Rc<RefCell<Vec<String>>>,
+    changes: Rc<RefCell<Vec<AttributeChange>>>,
 }
 
 impl CustomElement for WatchesOneAttribute {
@@ -443,8 +445,15 @@ impl CustomElement for WatchesOneAttribute {
         &["watched"]
     }
 
-    fn attribute_changed_callback(&self, name: &str, _old_value: JsValue, _new_value: JsValue) {
-        self.changes.borrow_mut().push(name.to_owned());
+    fn attribute_changed_callback(
+        &self,
+        name: &str,
+        old_value: Option<String>,
+        new_value: Option<String>,
+    ) {
+        self.changes
+            .borrow_mut()
+            .push((name.to_owned(), old_value, new_value));
     }
 }
 
@@ -470,6 +479,20 @@ fn component_declares_its_observed_attributes() {
         .create_element(&name)
         .unwrap();
     element.set_attribute("ignored", "1").unwrap();
-    element.set_attribute("watched", "1").unwrap();
-    assert_eq!(*changes.borrow(), vec!["watched".to_owned()]);
+    element.set_attribute("watched", "first").unwrap();
+    element.set_attribute("watched", "second").unwrap();
+    element.remove_attribute("watched").unwrap();
+    let watched = || "watched".to_owned();
+    assert_eq!(
+        *changes.borrow(),
+        vec![
+            (watched(), None, Some("first".to_owned())),
+            (
+                watched(),
+                Some("first".to_owned()),
+                Some("second".to_owned())
+            ),
+            (watched(), Some("second".to_owned()), None),
+        ]
+    );
 }

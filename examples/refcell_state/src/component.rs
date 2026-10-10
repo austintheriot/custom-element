@@ -2,7 +2,7 @@ use std::cell::RefCell;
 
 use custom_element::CustomElement;
 use js_sys::{Array, Object};
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlElement, ShadowRootInit, ShadowRootMode};
 
 struct Model {
@@ -90,11 +90,8 @@ impl CustomElement for CompoundCounter {
         }
     }
 
-    fn attribute_changed_callback(&self, _name: &str, _old: JsValue, new: JsValue) {
-        let count = new
-            .as_string()
-            .and_then(|value| value.parse::<u32>().ok())
-            .unwrap_or(0);
+    fn attribute_changed_callback(&self, _name: &str, _old: Option<String>, new: Option<String>) {
+        let count = new.and_then(|value| value.parse::<u32>().ok()).unwrap_or(0);
         let label = {
             let mut model = self.model.borrow_mut();
             if model.count != count {

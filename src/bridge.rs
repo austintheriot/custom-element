@@ -60,7 +60,12 @@ impl Bridge {
 
     #[doc(hidden)]
     #[wasm_bindgen(js_name = attributeChangedCallback)]
-    pub fn attribute_changed_callback(&self, name: &str, old_value: JsValue, new_value: JsValue) {
+    pub fn attribute_changed_callback(
+        &self,
+        name: &str,
+        old_value: Option<String>,
+        new_value: Option<String>,
+    ) {
         self.inner
             .attribute_changed_callback(name, old_value, new_value)
     }

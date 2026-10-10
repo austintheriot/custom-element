@@ -113,8 +113,8 @@ fn equal_attribute_write_reenters_before_outer_return() {
     let nested_guard = nested.clone();
     let element = create_recorder(Rc::new(move |element, call| {
         if let Call::Attribute { old, new, .. } = call {
-            let old_value = old.as_string();
-            let new_value = new.as_string().unwrap();
+            let old_value = old;
+            let new_value = new.unwrap();
             recorded
                 .borrow_mut()
                 .push(("enter", old_value.clone(), new_value.clone()));
@@ -189,7 +189,7 @@ fn held_borrows_report_conflicts_without_panicking() {
         }
         Call::Attribute { new, .. } => {
             conflicts_for_hook.borrow_mut().push((
-                new.as_string().unwrap(),
+                new.unwrap(),
                 state_for_hook.try_borrow().is_ok(),
                 state_for_hook.try_borrow_mut().is_ok(),
             ));
@@ -227,7 +227,7 @@ fn two_instances_keep_separate_state_during_nested_chain() {
     let first_peer = second_handle.clone();
     let first = create_recorder(Rc::new(move |_element, call| {
         if let Call::Attribute { new, .. } = call {
-            let value = new.as_string().unwrap();
+            let value = new.unwrap();
             first_trace
                 .borrow_mut()
                 .push(format!("first:{value}:enter"));
