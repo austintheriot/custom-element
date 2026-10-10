@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use custom_element::{create_custom_element, CustomElement};
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use web_sys::HtmlElement;
 
 pub enum Call {
@@ -11,8 +11,8 @@ pub enum Call {
     ConnectedMove,
     Attribute {
         name: String,
-        old: JsValue,
-        new: JsValue,
+        old: Option<String>,
+        new: Option<String>,
     },
     Event(web_sys::Event),
 }
@@ -49,7 +49,7 @@ impl CustomElement for Recorder {
         (self.hook)(&self.element, Call::Event(event));
     }
 
-    fn attribute_changed_callback(&self, name: &str, old: JsValue, new: JsValue) {
+    fn attribute_changed_callback(&self, name: &str, old: Option<String>, new: Option<String>) {
         (self.hook)(
             &self.element,
             Call::Attribute {

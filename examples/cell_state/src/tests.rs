@@ -13,9 +13,7 @@ struct Fixture {
 
 impl Fixture {
     fn register(name: &str) -> Self {
-        let (closure, constructor) = custom_element::create_custom_element(
-            CellCounter::new,
-        );
+        let (closure, constructor) = custom_element::create_custom_element(CellCounter::new);
         closure.forget();
         window()
             .unwrap()
@@ -83,7 +81,7 @@ impl CustomElement for ObservedCellCounter {
     fn handle_event(&self, event: Event) {
         self.inner.handle_event(event);
     }
-    fn attribute_changed_callback(&self, name: &str, old: JsValue, new: JsValue) {
+    fn attribute_changed_callback(&self, name: &str, old: Option<String>, new: Option<String>) {
         self.seen.borrow_mut().push(self.inner.count.get());
         self.inner.attribute_changed_callback(name, old, new);
     }
@@ -95,16 +93,14 @@ fn click_commits_cell_before_nested_attribute_callback() {
     let seen = Rc::new(RefCell::new(Vec::new()));
     let retained_components = components.clone();
     let retained_seen = seen.clone();
-    let (closure, constructor) = custom_element::create_custom_element(
-        move |element, args| {
-            let inner = Rc::new(CellCounter::new(element, args));
-            retained_components.borrow_mut().push(inner.clone());
-            ObservedCellCounter {
-                inner,
-                seen: retained_seen.clone(),
-            }
-        },
-    );
+    let (closure, constructor) = custom_element::create_custom_element(move |element, args| {
+        let inner = Rc::new(CellCounter::new(element, args));
+        retained_components.borrow_mut().push(inner.clone());
+        ObservedCellCounter {
+            inner,
+            seen: retained_seen.clone(),
+        }
+    });
     closure.forget();
     let name = "cell-precommit-test";
     window()

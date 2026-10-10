@@ -441,7 +441,7 @@ impl CustomElement for UpgradeRecorder {
         &["observed"]
     }
 
-    fn attribute_changed_callback(&self, _name: &str, _old: JsValue, _new: JsValue) {
+    fn attribute_changed_callback(&self, _name: &str, _old: Option<String>, _new: Option<String>) {
         self.0.borrow_mut().push("attribute");
     }
     fn connected_callback(&self) {

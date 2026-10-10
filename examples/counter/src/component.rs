@@ -1,6 +1,6 @@
 use custom_element::CustomElement;
 use js_sys::{Array, Object};
-use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen::JsCast;
 use web_sys::{
     Event, HtmlButtonElement, HtmlElement, HtmlParagraphElement, ShadowRootInit, ShadowRootMode,
 };
@@ -31,7 +31,12 @@ impl CustomElement for Counter {
             .unwrap();
     }
 
-    fn attribute_changed_callback(&self, _name: &str, _old_value: JsValue, _new_value: JsValue) {
+    fn attribute_changed_callback(
+        &self,
+        _name: &str,
+        _old_value: Option<String>,
+        _new_value: Option<String>,
+    ) {
         self.render();
     }
 

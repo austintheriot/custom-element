@@ -12,9 +12,7 @@ struct Fixture {
 
 impl Fixture {
     fn register(name: &str) -> Self {
-        let (closure, constructor) = custom_element::create_custom_element(
-            CompoundCounter::new,
-        );
+        let (closure, constructor) = custom_element::create_custom_element(CompoundCounter::new);
         closure.forget();
         window()
             .unwrap()
@@ -82,7 +80,7 @@ impl CustomElement for ObservedCompoundCounter {
     fn handle_event(&self, event: Event) {
         self.inner.handle_event(event);
     }
-    fn attribute_changed_callback(&self, name: &str, old: JsValue, new: JsValue) {
+    fn attribute_changed_callback(&self, name: &str, old: Option<String>, new: Option<String>) {
         let snapshot = {
             let model = self
                 .inner
@@ -102,16 +100,14 @@ fn one_click_updates_both_fields_before_return() {
     let seen = Rc::new(RefCell::new(Vec::new()));
     let retained_components = components.clone();
     let retained_seen = seen.clone();
-    let (closure, constructor) = custom_element::create_custom_element(
-        move |element, args| {
-            let inner = Rc::new(CompoundCounter::new(element, args));
-            retained_components.borrow_mut().push(inner.clone());
-            ObservedCompoundCounter {
-                inner,
-                seen: retained_seen.clone(),
-            }
-        },
-    );
+    let (closure, constructor) = custom_element::create_custom_element(move |element, args| {
+        let inner = Rc::new(CompoundCounter::new(element, args));
+        retained_components.borrow_mut().push(inner.clone());
+        ObservedCompoundCounter {
+            inner,
+            seen: retained_seen.clone(),
+        }
+    });
     closure.forget();
     window()
         .unwrap()

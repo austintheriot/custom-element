@@ -3,9 +3,7 @@ mod component;
 use component::CompoundCounter;
 
 fn main() {
-    let (closure, constructor) = custom_element::create_custom_element(
-        CompoundCounter::new,
-    );
+    let (closure, constructor) = custom_element::create_custom_element(CompoundCounter::new);
     closure.forget();
 
     let browser = web_sys::window().unwrap();

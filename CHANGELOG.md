@@ -39,6 +39,10 @@ All notable changes to this crate are in this file. The format follows
   take an attribute list. Implement `CustomElement::observed_attributes` on
   the component type instead. It returns `&'static [&'static str]` and
   defaults to an empty list.
+- `attribute_changed_callback` receives `Option<String>` for the old and the
+  new value instead of `JsValue`. `None` means the attribute was absent
+  before the change or is absent after it. Replace
+  `new_value.as_string()` with `new_value`.
 
 ### Migrating a mutable capture
 

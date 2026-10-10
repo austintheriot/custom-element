@@ -1,4 +1,3 @@
-use wasm_bindgen::JsValue;
 use web_sys::Event;
 
 /// Defines callbacks forwarded from a browser custom element to a Rust component.
@@ -62,5 +61,14 @@ pub trait CustomElement {
     /// Called when attributes are changed, added, removed, or replaced
     ///
     /// See [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)
-    fn attribute_changed_callback(&self, _name: &str, _old_value: JsValue, _new_value: JsValue) {}
+    ///
+    /// `old_value` is `None` when the attribute was absent. `new_value` is
+    /// `None` when the attribute was removed.
+    fn attribute_changed_callback(
+        &self,
+        _name: &str,
+        _old_value: Option<String>,
+        _new_value: Option<String>,
+    ) {
+    }
 }
