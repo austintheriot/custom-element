@@ -74,7 +74,7 @@
 //!
 //! ```
 //! use std::{cell::Cell, rc::Rc};
-//! use custom_element::{Bridge, CustomElement};
+//! use custom_element::CustomElement;
 //!
 //! struct Visits(Rc<Cell<u32>>);
 //! impl CustomElement for Visits {
@@ -83,8 +83,8 @@
 //!     }
 //! }
 //! let count = Rc::new(Cell::new(0));
-//! let bridge = Bridge::new(Visits(count.clone()));
-//! bridge.connected_callback();
+//! let visits = Visits(count.clone());
+//! CustomElement::connected_callback(&visits);
 //! assert_eq!(count.get(), 1);
 //! ```
 //!

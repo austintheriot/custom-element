@@ -34,6 +34,9 @@ This crates provide the JavaScript shim necessary for extending an arbitrary sub
 
 ### Migrating to 0.2.0
 
+The [changelog](CHANGELOG.md) lists every change in this release with a
+before and after snippet.
+
 All six `CustomElement` callbacks now take `&self`. Use interior mutability
 when a callback changes Rust-owned state. A component can also keep its
 state in element attributes. The factory passed to
@@ -98,13 +101,13 @@ struct Greeting { text: Rc<String> }
 impl CustomElement for Greeting {}
 
 let shared_text = Rc::new(String::from("Hello"));
-let (factory, constructor) = create_custom_element(
+let (closure, constructor) = create_custom_element(
     move |_element: JsValue, _args: Array| Greeting {
         text: Rc::clone(&shared_text),
     },
     vec![],
 );
-factory.forget();
+closure.forget();
 let _ = constructor;
 ```
 
@@ -119,7 +122,7 @@ struct Item { sequence: u32 }
 impl CustomElement for Item {}
 
 let sequence = Cell::new(0);
-let (factory, constructor) = create_custom_element(
+let (closure, constructor) = create_custom_element(
     move |_element, _arguments| {
         let next = sequence.get() + 1;
         sequence.set(next);
@@ -127,7 +130,7 @@ let (factory, constructor) = create_custom_element(
     },
     vec![],
 );
-factory.forget();
+closure.forget();
 let _ = constructor;
 ```
 
@@ -148,6 +151,10 @@ remove these borrow conflicts. State can change during a nested call, so
 read it again after the browser operation when later work needs the current
 value. Dropping a scope-local reference to `self` does not release a borrow
 held by an exported wrapper.
+
+The shared receiver removes the nested-call error that
+[wasm-bindgen issue #1578](https://github.com/rustwasm/wasm-bindgen/issues/1578)
+caused for mixed `&mut self` and `&self` calls.
 
 Browser custom-element upgrade rules also apply independently of Rust
 borrowing. While an existing element upgrades, its constructor cannot create

@@ -19,15 +19,15 @@ pub struct Bridge {
 
 impl Bridge {
     #[doc(hidden)]
-    pub fn new<C: CustomElement + 'static>(custom_element: C) -> Self {
+    pub fn new<Component: CustomElement + 'static>(custom_element: Component) -> Self {
         Self {
             inner: Box::new(custom_element),
         }
     }
 }
 
-impl<C: CustomElement + 'static> From<C> for Bridge {
-    fn from(custom_element: C) -> Self {
+impl<Component: CustomElement + 'static> From<Component> for Bridge {
+    fn from(custom_element: Component) -> Self {
         Bridge::new(custom_element)
     }
 }

@@ -67,7 +67,7 @@ pub struct CustomElementResult {
 /// impl CustomElement for Item {}
 ///
 /// let sequence = Cell::new(0);
-/// let (factory, constructor) = create_custom_element(
+/// let (closure, constructor) = create_custom_element(
 ///     move |_element, _arguments| {
 ///         let next = sequence.get() + 1;
 ///         sequence.set(next);
@@ -75,12 +75,16 @@ pub struct CustomElementResult {
 ///     },
 ///     vec![],
 /// );
-/// factory.forget();
+/// closure.forget();
 /// let _ = constructor;
 /// ```
 ///
+/// The factory must not add attributes to the element, because the browser
+/// rejects a constructor that adds attributes.
+///
 /// While an existing element upgrades, constructing another instance of the
-/// same registered type fails with a browser `TypeError`. Fresh construction
+/// same registered type makes the browser report a `TypeError`. The nested
+/// call returns an element with no Rust component. Fresh construction
 /// permits same-type reentry when application state has no conflicting borrow.
 pub fn create_custom_element<
     Component: CustomElement + 'static,
