@@ -17,6 +17,12 @@ All notable changes to this crate are in this file. The format follows
 - The returned closure type is `Closure<dyn Fn(JsValue, Array) -> JsValue>`.
   It was a `dyn FnMut` closure. Keep the closure alive while the registered
   constructor can create elements.
+- The default `connected_move_callback` calls `disconnected_callback` and
+  then `connected_callback`. It did nothing before. The generated element
+  class always defines `connectedMoveCallback`, so the browser skips its own
+  disconnect and reconnect for an `Element.moveBefore()` move. A component
+  that relied on the default lost both callbacks on such a move. Override
+  `connected_move_callback` to keep state across a move.
 
 ### Migrating a mutable capture
 

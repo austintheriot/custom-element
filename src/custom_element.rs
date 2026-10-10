@@ -31,10 +31,20 @@ pub trait CustomElement {
     /// see <https://gomakethings.com/the-handleevent-method-is-the-absolute-best-way-to-handle-events-in-web-components/>
     fn handle_event(&self, _event: Event) {}
 
-    /// When defined, this is called instead of connectedCallback() and disconnectedCallback() each time the element is moved to a different place in the DOM via Element.moveBefore().
+    /// Called instead of `disconnected_callback` and `connected_callback` each
+    /// time `Element.moveBefore()` moves the element inside the document
+    ///
+    /// The generated element class always defines `connectedMoveCallback`, so
+    /// the browser never runs its own disconnect and reconnect for a move. The
+    /// default calls `disconnected_callback` and then `connected_callback`,
+    /// which matches the browser behavior for an element without the callback.
+    /// Override it to keep state across a move.
     ///
     /// See [MDN Documentation](https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements)
-    fn connected_move_callback(&self) {}
+    fn connected_move_callback(&self) {
+        self.disconnected_callback();
+        self.connected_callback();
+    }
 
     /// Called when attributes are changed, added, removed, or replaced
     ///

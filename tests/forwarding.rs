@@ -237,6 +237,63 @@ fn lifecycle_traces_connection_disconnection_adoption_and_reconnection() {
     common::browser::assert_no_browser_errors(|| element.remove());
 }
 
+struct ConnectionOnly {
+    trace: Rc<RefCell<Vec<&'static str>>>,
+}
+
+impl CustomElement for ConnectionOnly {
+    fn connected_callback(&self) {
+        self.trace.borrow_mut().push("connected");
+    }
+
+    fn disconnected_callback(&self) {
+        self.trace.borrow_mut().push("disconnected");
+    }
+}
+
+#[wasm_bindgen_test]
+fn native_move_without_override_reconnects() {
+    if !move_capability() {
+        wasm_bindgen_test::console_log!("native move capability: unsupported");
+        return;
+    }
+    let trace = Rc::new(RefCell::new(Vec::new()));
+    let recorded = trace.clone();
+    let (closure, constructor) = create_custom_element(
+        move |_element, _arguments| ConnectionOnly {
+            trace: recorded.clone(),
+        },
+        vec![],
+    );
+    closure.forget();
+    let name = common::names::get_random_custom_element_name();
+    window()
+        .unwrap()
+        .custom_elements()
+        .define(&name, &constructor)
+        .unwrap();
+    let element: HtmlElement = window()
+        .unwrap()
+        .document()
+        .unwrap()
+        .create_element(&name)
+        .unwrap()
+        .dyn_into()
+        .unwrap();
+    let parents = common::browser::assert_no_browser_errors(|| move_between_parents(&element));
+    assert_eq!(
+        *trace.borrow(),
+        vec!["connected", "disconnected", "connected"]
+    );
+    for key in ["source", "destination"] {
+        let parent: HtmlElement = Reflect::get(&parents, &JsValue::from_str(key))
+            .unwrap()
+            .dyn_into()
+            .unwrap();
+        parent.remove();
+    }
+}
+
 #[wasm_bindgen_test]
 fn native_move_reports_capability_and_preserves_connection() {
     let trace = Rc::new(RefCell::new(Vec::new()));
