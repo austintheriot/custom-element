@@ -1,11 +1,10 @@
+#![cfg(target_arch = "wasm32")]
+
 use js_sys::{Object, Reflect};
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
-mod common {
-    pub mod constructors;
-    pub mod mock;
-}
+mod common;
 
 wasm_bindgen_test_configure!(run_in_browser);
 

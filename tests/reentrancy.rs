@@ -1,3 +1,5 @@
+#![cfg(target_arch = "wasm32")]
+
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
@@ -8,12 +10,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 use web_sys::{window, Event, HtmlElement};
 
-mod common {
-    pub mod browser;
-    pub mod names;
-    pub mod recorder;
-    pub mod reflect;
-}
+mod common;
 
 use common::{
     recorder::{create_recorder, Call},

@@ -1,3 +1,5 @@
+#![cfg(target_arch = "wasm32")]
+
 use std::{cell::RefCell, rc::Rc};
 
 use js_sys::{Array, Object, Reflect};
@@ -5,11 +7,7 @@ use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_test::*;
 use web_sys::{window, Event, HtmlElement};
 
-mod common {
-    pub mod browser;
-    pub mod names;
-    pub mod recorder;
-}
+mod common;
 
 use common::{
     browser::{dispatch_probe, prepare_probe, shadow_probe},

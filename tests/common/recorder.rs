@@ -1,4 +1,4 @@
-use std::{fmt, rc::Rc};
+use std::rc::Rc;
 
 use custom_element::{create_custom_element, CustomElement};
 use wasm_bindgen::{JsCast, JsValue};
@@ -15,24 +15,6 @@ pub enum Call {
         new: JsValue,
     },
     Event(web_sys::Event),
-}
-
-impl fmt::Debug for Call {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Call::Connected => formatter.write_str("Connected"),
-            Call::Disconnected => formatter.write_str("Disconnected"),
-            Call::Adopted => formatter.write_str("Adopted"),
-            Call::ConnectedMove => formatter.write_str("ConnectedMove"),
-            Call::Attribute { name, old, new } => formatter
-                .debug_struct("Attribute")
-                .field("name", name)
-                .field("old", old)
-                .field("new", new)
-                .finish(),
-            Call::Event(event) => formatter.debug_tuple("Event").field(event).finish(),
-        }
-    }
 }
 
 pub type Hook = Rc<dyn Fn(&HtmlElement, Call)>;

@@ -1,20 +1,16 @@
+#![cfg(target_arch = "wasm32")]
+
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_test::*;
+use web_sys::HtmlElement;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-mod common {
-    pub mod call_counters;
-    pub mod constructors;
-    pub mod mock;
-    pub mod names;
-    pub mod recorder;
-}
+mod common;
 
-fn assert_is_custom_element_instance(value: &wasm_bindgen::JsValue) {
-    use wasm_bindgen::JsCast;
-
+fn assert_is_custom_element_instance(value: &JsValue) {
     assert!(value.is_object());
-    assert!(value.is_instance_of::<web_sys::HtmlElement>());
+    assert!(value.is_instance_of::<HtmlElement>());
 }
 
 pub mod autonomous_custom_elements {

@@ -1,3 +1,5 @@
+#![cfg(target_arch = "wasm32")]
+
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
@@ -16,10 +18,7 @@ use web_sys::{
     window, ElementCreationOptions, ElementDefinitionOptions, HtmlElement, HtmlParagraphElement,
 };
 
-mod common {
-    pub mod browser;
-    pub mod names;
-}
+mod common;
 
 use common::browser::{is_failed_element, next_turn, plain_upgrade_recursion};
 
@@ -91,13 +90,16 @@ impl CustomElement for ConnectionCounter {
 fn fresh_construction_inside_a_factory_builds_a_complete_element() {
     let name = common::names::get_random_custom_element_name();
     let connections = Rc::new(Cell::new(0));
+    let calls = Rc::new(Cell::new(0));
     let nested = Rc::new(RefCell::new(None));
     let recorded_connections = connections.clone();
+    let recorded_calls = calls.clone();
     let recorded_nested = nested.clone();
     let nested_name = name.clone();
     let (closure, constructor) = create_custom_element(
         move |_element, _arguments| {
-            if recorded_nested.borrow().is_none() {
+            recorded_calls.set(recorded_calls.get() + 1);
+            if recorded_calls.get() == 1 {
                 let element = window()
                     .unwrap()
                     .document()
@@ -123,6 +125,7 @@ fn fresh_construction_inside_a_factory_builds_a_complete_element() {
     let outer =
         common::browser::assert_no_browser_errors(|| document.create_element(&name).unwrap());
 
+    assert_eq!(calls.get(), 2);
     let nested = nested.borrow_mut().take().unwrap();
     assert!(!is_failed_element(nested.as_ref()));
     assert!(!Object::is(outer.as_ref(), nested.as_ref()));

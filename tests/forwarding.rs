@@ -1,3 +1,5 @@
+#![cfg(target_arch = "wasm32")]
+
 use std::{cell::RefCell, rc::Rc};
 
 use custom_element::{create_custom_element, Bridge, CustomElement};
@@ -6,12 +8,7 @@ use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_test::*;
 use web_sys::{window, Event, HtmlElement};
 
-mod common {
-    pub mod browser;
-    pub mod names;
-    pub mod recorder;
-    pub mod reflect;
-}
+mod common;
 
 use common::{
     browser::{

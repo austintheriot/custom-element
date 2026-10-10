@@ -1,11 +1,10 @@
+#![cfg(target_arch = "wasm32")]
+
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-mod common {
-    pub mod mock;
-    pub mod names;
-}
+mod common;
 
 pub mod autonomous_custom_elements {
     use std::{cell::RefCell, rc::Rc};
