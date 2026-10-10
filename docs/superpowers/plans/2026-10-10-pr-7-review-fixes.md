@@ -31,11 +31,12 @@ implement a rejected finding.
   Firefox only (no chromedriver):
 
   ```
-  PATH=/private/tmp/claude-501/-Users-austin-Code-custom-element/bac2f361-a590-49c3-b232-f337d4cb5fda/scratchpad/wb/bin:$PATH bash scripts/test-browser.sh firefox debug
+  bash scripts/test-browser.sh firefox debug
   ```
 
-  That bin directory holds wasm-bindgen CLI 0.2.100, which the script
-  requires. The script runs the root suite and all three state examples.
+  Run it with a directory that holds wasm-bindgen CLI 0.2.100 on `PATH`.
+  The script requires that version. The script runs the root suite and
+  all three state examples.
 - Leave `git status --porcelain` empty when done, except for intended
   commits.
 

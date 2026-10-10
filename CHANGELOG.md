@@ -4,7 +4,7 @@ All notable changes to this crate are in this file. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The crate follows
 [Semantic Versioning](https://semver.org/).
 
-## [0.2.0] - 2026-10-10
+## 0.2.0 - 2026-10-10
 
 ### Changed
 
@@ -49,5 +49,3 @@ let (closure, constructor) = create_custom_element(
     vec![],
 );
 ```
-
-[0.2.0]: https://github.com/austintheriot/custom-element/releases/tag/v0.2.0

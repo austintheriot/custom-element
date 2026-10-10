@@ -9,6 +9,8 @@ cargo install wasm-bindgen-cli --version 0.2.100 --locked
 cargo install cargo-make
 ```
 
+Install `jq`. The browser test script uses `jq` to select example crates.
+
 The `wasm-bindgen` CLI and test runner must report version 0.2.100. The matrix script checks both versions before tests run.
 
 Install Firefox, Chrome, `geckodriver`, and `chromedriver`. Both drivers must be on `PATH`. Check that each driver supports the installed browser version.

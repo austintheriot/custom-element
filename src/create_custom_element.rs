@@ -80,7 +80,10 @@ pub struct CustomElementResult {
 /// ```
 ///
 /// The factory must not add attributes to the element, because the browser
-/// rejects a constructor that adds attributes.
+/// rejects a constructor that adds attributes. Setting an observed attribute
+/// inside the factory also runs `attributeChangedCallback` before the element
+/// holds its component, and the shim throws a `TypeError`. This happens on
+/// every construction path.
 ///
 /// While an existing element upgrades, constructing another instance of the
 /// same registered type makes the browser report a `TypeError`. The nested
